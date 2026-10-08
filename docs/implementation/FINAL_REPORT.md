@@ -38,7 +38,7 @@ This report separates what is **implemented**, **tested**, **deployed**, **propo
 |---|---|
 | Unit (`npm run test:unit`) | 77 tests: 76 pass, 1 skipped (the PostgreSQL store test needs `CB_TEST_PG`), 0 fail |
 | Typecheck, `next build` | pass |
-| Browser (Playwright, desktop + Pixel 7) | 128 pass, 4 skipped (device-specific), 0 fail. Includes axe WCAG 2.1 A/AA on 20 pages × 2 devices, no-JS, reduced motion, no overflow, and journeys for Bring, Keep, Export/Import, Create, Spaces, modes, the demo and capabilities |
+| Browser (Playwright, desktop + Pixel 7) | 128 pass, 4 skipped (device-specific), 0 fail. Includes axe WCAG 2.1 A/AA on 21 pages × 2 devices, no-JS, reduced motion, no overflow, and journeys for Bring, Keep, Export/Import, Create, Spaces, modes, the demo and capabilities |
 | Ingress harness (`npm run test:ingress`) | questions 12/12 (1 skipped: POST /c returns 503 without a store), checks 26/26 |
 | Smoke (`npm run test:smoke`) | 29/29 |
 
