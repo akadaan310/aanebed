@@ -41,7 +41,11 @@ Specifically verified: every address-producing affordance resolves, including at
 
 ## Deployed
 
-LIVE_PLACEHOLDER
+Commit `b77a53f` was deployed by Vercel to https://aanebed.vercel.app. Against the live origin:
+
+- `npm run test:smoke`: **38/38** (`verification/smoke-live-v2.json`), including the v1 Pearl id check, `/live`, `/play`, `living.describe`, `pearl.fork` and `pearl.diff`;
+- the ingress harness: questions 12/12 (1 skipped), checks 26/26;
+- the v2 Playwright journeys (`BASE_URL=https://aanebed.vercel.app`, matching "v2 design test", "/live", "Living Pearl", "Play:" and "machine surface"): **28 passed**, 2 skipped (device-specific), 0 failed. The full browser suite was run against the local production build.
 
 ## Proposed (not built)
 
