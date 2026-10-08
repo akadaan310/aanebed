@@ -60,4 +60,17 @@ The experiment checks participation, not whether the model read a URL. A model "
 
 ## Results
 
-(Filled in from `verification/anthropic-experiment.json` after the production run.)
+The clone-based run described above was **not performed**: the clone store (Vercel Blob) was suspended for exceeding its operation quota before the run. The product was then rebuilt as Pearls, where a Pearl lives entirely in its link and needs no store. The experiment was run there instead, in production on 2026-10-08 (deployment of commit 3c827a4), through the product's own API.
+
+| Step | Model (OBSERVED: as the API reported it) | Time | Cost (DERIVED from usage) | Result |
+|---|---|---|---|---|
+| A person's one-line idea → Pearl | claude-haiku-5-5 | 8.0 s | US$0.0006 | "Sea Captain Multiplication": a text block, a playable quiz and steps; sealed |
+| That Pearl → grown ("a harder level, a sea creature per level") | claude-sonnet-5-5 | 9.1 s | US$0.0206 | Same title, new level list, a harder "Storm Seas" quiz, building steps; `from` = the Haiku Pearl's id; both contributions in its history; sealed |
+| Sonnet's Pearl → grown ("a printable card version") | claude-haiku-5-5 | 11.4 s | US$0.0016 | Fridge cards, making steps, a quick quiz; four hands in its history; sealed |
+
+- **Total spent: about US$0.023.**
+- **Seals:** all three verify on the live `/pearl/{code}/text` ("verified on this content").
+- **What was observed:** each model received the actual previous Pearl (its full text form) and returned a valid Pearl under structured outputs. The second model built on the first one's work rather than starting over: same game, theme and title, with additions.
+- **Not observed:** how good the content is for a real seven-year-old; any model other than these two; any AI outside this site participating. The "Copy for AI" path and pasting a reply back were exercised with a written reply in an automated browser test, not with a real external AI.
+
+The three Pearls are listed on /explore exactly as they came back, unedited.
