@@ -23,8 +23,10 @@ Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 7.0.0 · How it work
 |---|---|
 | Unit | see below; clone tests cover both backends, including a fake Blob API with real overwrite semantics and a lagging listing, plus races, replays, expiry, deletion, unauthorized access and branching |
 | Browser (desktop + Pixel 7) | full suite green, including the clone journeys: one action; waiting → AI responds from outside → two browsers update live; refresh while waiting and after; a new context reconstructs it; bring-back relay; incomplete answer names what is missing; continue / clone again / parent unchanged; owner-only delete; polling without EventSource under reduced motion; axe on the waiting and living pages |
-| Protocol end to end (`npm run test:clone`) | LIVE_CLONE |
-| Smoke / ingress | LIVE_SMOKE |
+| Protocol end to end (`npm run test:clone`) | **24/24 on production** (https://aanebed.vercel.app, private Vercel Blob, 16.8 s): five racing answers produce exactly one clone; SSE delivered ALIVE; chain intact; the 4 test clones it made were deleted |
+| Browser clone journeys against production | 5/5 (desktop) |
+| Smoke / ingress | smoke 51/51 (`verification/smoke-live-clone.json`); ingress questions 12/12 (1 skipped), checks 26/26 |
+| Runtime logs (Vercel) | structured clone events only; an error/fatal query over the last 40 minutes returned nothing |
 
 ## Honest limits
 
@@ -32,6 +34,7 @@ Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 7.0.0 · How it work
 - **The OPENED state is a heuristic** (a read without browser navigation headers) and is labelled as one.
 - **Anyone with the address can read the clone**, by design: a capability URL, stated in the UI. Deletion is owner-only.
 - **Rate limits are per server instance** (best-effort).
+- **The live browser journeys left a few test clones in the production store** (only the delete test removes its own). They expire after 7 days.
 
 ---
 
