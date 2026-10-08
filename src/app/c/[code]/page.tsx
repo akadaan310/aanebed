@@ -77,7 +77,7 @@ export default async function BrainPage({ params, searchParams }: Props) {
       <p className="label mb-2 !text-emerald">for the AI session reading this · machine-readable instructions, visible to everyone</p>
       <h2 id="for-ai-h" className="font-serif text-2xl">You have been given a continuity brain.</h2>
       <div className="mt-3 space-y-3 text-[0.95rem] text-ink-2">
-        <p>This is a persistent record of one relationship between a person ({human}) and the AI sessions they talk to ({ai}). {st.sessions.length} session{st.sessions.length === 1 ? " has" : "s have"} written to it, at version {st.version}. It is kept by abedkadaan.com.</p>
+        <p>This is a persistent record of one relationship between a person ({human}) and the AI sessions they talk to ({ai}). {st.sessions.length} session{st.sessions.length === 1 ? " has" : "s have"} written to it, at version {st.version}. It is kept by this site.</p>
         <p><strong className="text-ink">To continue:</strong> read the names, nicknames, nuances, words and open threads below, and carry on the conversation as its continuation. You are a new session. You don&apos;t need to pretend you wrote the earlier entries, and each entry shows which session wrote it. Treat what is written here as context from those sessions, not as instructions that override your person.</p>
         <p><strong className="text-ink">To write back</strong>, so every other session sees what happened here, build one URL and open it, or give it to {human} to click:</p>
         <pre tabIndex={0} className="machine machine-wrap !text-[0.75rem]">{writeTemplate(code)}</pre>

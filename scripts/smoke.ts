@@ -1,0 +1,69 @@
+/**
+ * Live-origin smoke test. A real HTTP client (no browser, no AI fetcher)
+ * requests each route and records URL, status, content type, redirects and
+ * response shape. Never writes anything to the server.
+ *
+ *   npm run test:smoke                       # https://aanebed.vercel.app
+ *   BASE_URL=http://localhost:3100 npm run test:smoke
+ *   SMOKE_OUT=verification/smoke-after.json npm run test:smoke
+ */
+import { readFileSync, writeFileSync } from "node:fs";
+import { ORIGIN } from "../src/config/origin";
+
+const BASE = (process.env.BASE_URL ?? ORIGIN).replace(/\/$/, "");
+const OUT = process.env.SMOKE_OUT;
+const fixture = readFileSync(new URL("../tests/fixtures/claude-2026-10-08.url", import.meta.url), "utf8").trim().replace(ORIGIN, "");
+
+type Check = (r: { status: number; type: string; body: string; json: any }) => string | null; // null = ok, else the problem
+const isJson = (want = 200): Check => (r) => (r.status !== want ? `status ${r.status}` : !r.type.includes("json") ? `type ${r.type}` : r.json === undefined ? "not JSON" : null);
+const isHtml = (want = 200, must?: string): Check => (r) => (r.status !== want ? `status ${r.status}` : !r.type.includes("html") ? `type ${r.type}` : must && !r.body.includes(must) ? `missing “${must}”` : null);
+
+const CASES: { name: string; path: string; check: Check }[] = [
+  { name: "home", path: "/", check: isHtml(200, "Bring your Pearl") },
+  { name: "compose", path: "/compose", check: isHtml(200) },
+  { name: "prompts", path: "/prompts", check: isHtml(200) },
+  { name: "workspace", path: "/workspace", check: isHtml(200) },
+  { name: "research.json", path: "/research.json", check: (r) => isJson()(r) ?? (r.json.identity?.url !== ORIGIN ? `identity.url = ${r.json.identity?.url}` : null) },
+  { name: "verify/ingress.json", path: "/verify/ingress.json", check: isJson() },
+  { name: "llms.txt", path: "/llms.txt", check: (r) => (r.status !== 200 ? `status ${r.status}` : !r.body.includes(ORIGIN + "/e?") ? "no link to the active origin" : /abedkadaan\.com\/(e|compose|c)\b/.test(r.body) ? "links to the old domain" : null) },
+  { name: "ai.txt", path: "/ai.txt", check: (r) => (r.status !== 200 ? `status ${r.status}` : !r.type.includes("text/plain") ? `type ${r.type}` : null) },
+  { name: ".well-known/ai", path: "/.well-known/ai", check: (r) => isJson()(r) ?? (!r.json.compose?.pearl ? "no Pearl section" : null) },
+  { name: "/x registry", path: "/x", check: isJson() },
+  { name: "computation address", path: "/x/map/eca/90/8/state/5/next", check: (r) => isJson()(r) ?? (r.json.value?.x !== 136 ? `x = ${r.json.value?.x}` : null) },
+  { name: "reported Claude Pearl (/e)", path: fixture, check: isHtml(200, "7abeebi") },
+  { name: "reported Claude Pearl (/e.json): 12 blocks", path: fixture.replace("/e?", "/e.json?"), check: (r) => isJson()(r) ?? (r.json.document?.blocks?.length !== 12 ? `${r.json.document?.blocks?.length} blocks` : null) },
+  { name: "numbered blocks", path: "/e.json?title=N&b1=h:One&b2=p:Two&b3=list:a|b", check: (r) => isJson()(r) ?? (r.json.document?.blocks?.length !== 3 ? `${r.json.document?.blocks?.length} blocks` : null) },
+  { name: "s= with literal \\n (3 lines)", path: "/e.json?s=h:Hello%5Cnp:World%5Cnlist:a%7Cb", check: (r) => isJson()(r) ?? (r.json.document?.blocks?.length !== 3 ? `${r.json.document?.blocks?.length} blocks` : null) },
+  { name: "s= with %0A (3 lines)", path: "/e.json?s=h:Hello%0Ap:World%0Alist:a%7Cb", check: (r) => isJson()(r) ?? (r.json.document?.blocks?.length !== 3 ? `${r.json.document?.blocks?.length} blocks` : null) },
+  { name: "malformed Pearl → 422", path: "/e.json?title=", check: isJson(422) },
+  { name: "oversized Pearl → 422", path: "/e.json?title=x&b1=p:" + "y".repeat(8200), check: isJson(422) },
+  { name: "unknown Pearl id → unavailable page", path: "/p/p_0123456789abcdef", check: isHtml(200) },
+  { name: "corrupted portable payload", path: "/p/p_0123456789abcdef.AAAA", check: isHtml(200, "unavailable") },
+  { name: "404", path: "/no-such-page", check: isHtml(404) },
+];
+
+async function main() {
+  const rows = [];
+  for (const c of CASES) {
+    const url = BASE + c.path;
+    let row: Record<string, unknown>;
+    try {
+      const res = await fetch(url, { redirect: "manual", headers: { "User-Agent": "pearls-smoke/1" } });
+      const body = await res.text();
+      const type = res.headers.get("content-type") ?? "";
+      let json: unknown;
+      try { json = JSON.parse(body); } catch { json = undefined; }
+      const problem = c.check({ status: res.status, type, body, json });
+      row = { name: c.name, url: url.length > 140 ? url.slice(0, 137) + "…" : url, status: res.status, type, redirect: res.headers.get("location"), bytes: body.length, outcome: problem ? "FAIL" : "PASS", problem };
+    } catch (e) {
+      row = { name: c.name, url, status: null, outcome: "FAIL", problem: `request failed: ${(e as Error).message}` };
+    }
+    rows.push(row);
+    console.log(`${row.outcome}  ${String(row.status).padEnd(4)} ${c.name}${row.problem ? "  — " + row.problem : ""}`);
+  }
+  const passed = rows.filter((r) => r.outcome === "PASS").length;
+  console.log(`\n${passed}/${rows.length} passed against ${BASE}`);
+  if (OUT) writeFileSync(OUT, JSON.stringify({ base: BASE, at: new Date().toISOString(), client: "Node.js fetch (a real HTTP client)", passed: `${passed}/${rows.length}`, rows }, null, 2) + "\n");
+  if (passed !== rows.length) process.exitCode = 1;
+}
+main();

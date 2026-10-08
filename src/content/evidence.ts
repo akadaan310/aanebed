@@ -161,9 +161,43 @@ export const EVIDENCE: EvidenceRecord[] = [
     date: "2026-10-08",
     repository: "site",
     command: "CONTINUITY_STORE=memory npm start & npm run test:ingress",
-    result: "Recorded at /verify/ingress.json, questions 10 to 12: whether the offer is readable in the root page's static text, whether a URL built from the documented template renders, and whether a kept brain is read and written by several sessions.",
+    result: "Recorded at /verify/ingress.json: whether the offer is readable in the root page's static text, whether a URL built from the documented template renders, and whether a Pearl survives /e.json, the portable link and a URL-normalising fetcher. The continuity-brain question runs only where a store is configured.",
     caveat:
       "The client follows the documented template; it is not a language model deciding to do so. Whether ChatGPT, Gemini, Claude, Perplexity and others will do it unprompted, and whether their browsing tools may open a write link, is untested (C-18).",
+  },
+  {
+    id: "E-013",
+    title: "A Claude session's field report on the deployed site",
+    status: "OBSERVED",
+    observer: "A Claude Opus 5.5 chat session, as reported to the owner and supplied verbatim (2026-10-08)",
+    date: "2026-10-08",
+    command: "The session read /llms.txt, composed a 12-block Pearl link, and checked it through its own fetch tool",
+    result:
+      "The session composed a valid 12-block continuity link. It reported three problems: abedkadaan.com returned 404 for /compose and /e.json while every llms.txt link pointed there; repeated b= keys collapsed to one block when it checked /e.json; and the s= fallback returned 422 for a 3-line case.",
+    caveat: "A report from one session's tools, not a controlled experiment. Its link is kept verbatim as a regression fixture (tests/fixtures/claude-2026-10-08.url).",
+  },
+  {
+    id: "E-014",
+    title: "Root causes reproduced against the live deployment",
+    status: "REPRODUCED",
+    observer: OBSERVER,
+    date: "2026-10-08",
+    command: "curl and a Python client against https://aanebed.vercel.app/e.json; see docs/implementation/BASELINE.md",
+    result:
+      "The server parsed all 12 blocks of the reported link, in order. The collapse reproduced only through a client that sorts keys and keeps one value per key (12 → 1 block), which matches what the session suspected about its fetcher. A raw # in a block's text cut every later block before it reached the server, and a bare & split a block. s= returned 200 with %0A, but a literal \n produced one block. abedkadaan.com/compose, /e.json and /llms.txt returned 404.",
+    caveat: "The original 422 on s= did not reproduce with any encoding tried. A fetcher dropping the s= parameter is the most likely cause, which is why /e.json now echoes what it received.",
+  },
+  {
+    id: "E-015",
+    title: "Pearl protocol, resolver and workspace tests",
+    status: "TESTED",
+    observer: OBSERVER,
+    date: "2026-10-08",
+    repository: "site",
+    command: "npm test (tests/unit/pearl.test.ts, workspace.test.ts)",
+    result:
+      "The reported 12-block link: every block, title, model, session and Arabizi entry survives parsing, serialisation, re-parsing, the portable /p/ link, library export and re-import, with a stable content id. Numbered blocks survive a key-sorting, de-duplicating fetcher (12 of 12); repeated b= does not (1 of 12). s= works with literal \n. A raw # and a bare & are recovered in pasted links. Forged and oversized portable payloads are rejected.",
+    caveat: "Unit tests of the code paths; the live deployment is checked separately by the smoke test.",
   },
 ];
 

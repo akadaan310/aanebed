@@ -3,7 +3,8 @@ import { RESEARCH_IDS } from "../experience-request";
 import { bodyFrom, fold, normaliseCode, type EventBody } from "./model";
 import { getStore, type ReadResult } from "./store";
 
-export const ORIGIN = "https://abedkadaan.com";
+import { ORIGIN } from "../../config/origin";
+export { ORIGIN };
 
 export function bodyFromQuery(q: URLSearchParams, fallbackSession: string): { body: EventBody; errors: string[]; warnings: string[] } {
   const r = parseExperience(q, RESEARCH_IDS, q.toString().length + 40);

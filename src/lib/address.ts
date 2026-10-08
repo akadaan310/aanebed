@@ -16,7 +16,7 @@
 
 import { hashJson, type Json } from "./canonical";
 
-export const PROTOCOL = "substrate-purl/0 (provisional) · abedkadaan.com resolver 1";
+export const PROTOCOL = "substrate-purl/0 (provisional) · Pearls resolver 1";
 
 export const LIMITS = { maxBits: 16, maxTraceSteps: 256, maxOperations: 12, maxPathLength: 200 } as const;
 

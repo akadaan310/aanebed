@@ -1,12 +1,13 @@
 import type { Experiment } from "./types";
 import { SITE } from "./site";
+import { ORIGIN } from "@/config/origin";
 
 export const EXPERIMENTS: Experiment[] = [
   {
     id: "X-INGRESS",
     name: "Give this URL to an AI",
     question:
-      "Given only https://abedkadaan.com, what can a browsing-capable client discover about this site: its identity, machine interface, research topology, experiments, evidence and limits?",
+      `Given only ${ORIGIN}, what can a browsing-capable client discover about this site: its identity, machine interface, research topology, experiments, evidence and limits?`,
     status: "TESTED",
     permitted: [
       "GET any page or file on this origin.",
@@ -25,7 +26,7 @@ export const EXPERIMENTS: Experiment[] = [
     ],
     entry: "/protocol",
     evidence: ["E-009", "E-010"],
-    reproduce: "npm run build && npm start, then in another shell: npm run test:ingress (or BASE_URL=https://abedkadaan.com npm run test:ingress)",
+    reproduce: `npm run build && npm start, then in another shell: npm run test:ingress (or BASE_URL=${ORIGIN} npm run test:ingress)`,
   },
   {
     id: "X-ADDRESS",
@@ -44,7 +45,7 @@ export const EXPERIMENTS: Experiment[] = [
     entry: "/x/map/eca/90/8/state/5/next",
     evidence: ["E-006"],
     reproduce:
-      "git clone https://github.com/akadaan310/substrateIO && cd substrateIO && python3 -m tools.purl_server & curl -s localhost:8765/map/eca/90/8/state/5/next | jq .identity.value_sha256 — then compare with curl -s https://abedkadaan.com/x/map/eca/90/8/state/5/next | jq .identity.value_sha256",
+      `git clone https://github.com/akadaan310/substrateIO && cd substrateIO && python3 -m tools.purl_server & curl -s localhost:8765/map/eca/90/8/state/5/next | jq .identity.value_sha256 — then compare with curl -s ${ORIGIN}/x/map/eca/90/8/state/5/next | jq .identity.value_sha256`,
   },
   {
     id: "X-LAYERS",
@@ -75,8 +76,19 @@ export const EXPERIMENTS: Experiment[] = [
       "Compare with the reference: git clone https://github.com/akadaan310/golden-surface; bash relay/setup-env.sh; python3 relay/relay.py & python3 tests/test_relay.py",
   },
   {
+    id: "X-PEARL",
+    name: "Bring a Pearl",
+    question: "Can an AI compose a Pearl that a person can inspect, keep, carry to another AI, and bring back updated, with every step checkable?",
+    status: "TESTED",
+    permitted: ["Compose /e?… following /compose and give it to the person.", "Check a link with /e.json?… before giving it.", "Read a Pearl the person gives you and compose an updated one."],
+    forbidden: ["Claiming a Pearl carries your memory or proves who wrote it.", "Putting secrets in a Pearl."],
+    entry: "/#bring",
+    evidence: ["E-013", "E-014", "E-015"],
+    reproduce: "npm test; then paste tests/fixtures/claude-2026-10-08.url into Bring your Pearl",
+  },
+  {
     id: "X-LIFE",
-    name: "Give your AI an ID and a life",
+    name: "Continuity brain (proposed on this deployment)",
     question:
       "Given only the plain URL, can an AI compose a custom experience as a URL, and can the person keep it as a continuity brain that any number of AI sessions, at any provider, read and write back to, with one consistent, verifiable record?",
     status: "TESTED",

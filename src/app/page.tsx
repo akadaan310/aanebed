@@ -11,6 +11,12 @@ import { AddressConsole } from "@/components/AddressConsole";
 import { CopyButton } from "@/components/CopyPrompt";
 import type { EvidenceStatus, Tier } from "@/content/types";
 import { OFFER, LIFE_EXAMPLE } from "@/content/compose";
+import { PROMPTS } from "@/content/prompts";
+import { ORIGIN } from "@/config/origin";
+import { PromptCard } from "@/components/pearl/PromptCard";
+import { BringPearl } from "@/components/pearl/BringPearl";
+import { MyPearlsPreview } from "@/components/pearl/MyPearlsPreview";
+import { PearlGlyph } from "@/components/ExperienceView";
 
 const SECTIONS = [
   { id: "ai-ci", substrate: node("ai-ci").substrate, address: "/research/ai-ci", pointer: "/research.json#/thesis" },
@@ -32,30 +38,41 @@ export default function Home() {
     <>
       <SubstrateLayer data={{ page: "/", kind: "research-surface", thesis: SITE.thesis, sections: SECTIONS, manifest: "/research.json", ai_manifest: "/.well-known/ai" }} />
 
-      {/* Hero: the main attraction */}
-      <section aria-labelledby="hero-h" className="grid-paper relative overflow-hidden border-b border-rule" data-substrate="url → ai → experience → life → any ai" data-address="/" data-pointer="/.well-known/ai#/compose">
-        <div className="wrap grid gap-12 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1fr_24rem] lg:gap-16 lg:pb-24">
+      {/* Hero: Pearls, the product */}
+      <section aria-labelledby="hero-h" className="grid-paper relative border-b border-rule" data-substrate="ai → pearl → bring → inspect → keep → carry" data-address="/" data-pointer="/.well-known/ai#/compose">
+        <div className="wrap grid gap-12 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
           <div>
-            <p className="label mb-8">abedkadaan.com · AI-CI · the web is becoming programmable</p>
-            <h1 id="hero-h" className="display max-w-[11ch]">Give your AI an ID and a life.</h1>
-            <p className="lede mt-8 max-w-[38ch]">Paste <span className="text-gold">abedkadaan.com</span> into any AI. It writes down who you two are: the names, the nicknames, the in-jokes, the misspellings that mean something. Then it hands you back a link to your own experience, live on this site.</p>
-            <p className="lede mt-4 max-w-[38ch] text-ink-2">Keep it, and you get a third link. Paste that into any AI, anywhere: ChatGPT, Gemini, Claude, Perplexity. It carries on the conversation. Two places, ten places. <span className="text-ink">We keep the life.</span></p>
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <CopyButton text="https://abedkadaan.com" label="Copy abedkadaan.com" />
-              <Link href="/continue" className="arrow-link">How the life is kept →</Link>
-              <a href={LIFE_EXAMPLE.replace("https://abedkadaan.com", "")} className="arrow-link">See an example experience →</a>
-            </div>
-          </div>
-
-          <aside aria-label="The three links" className="self-end">
-            <p className="label mb-3">the three links</p>
-            <ol className="border border-rule-strong bg-ground/80">
-              <li className="border-b border-rule p-4"><p className="coord">01 · you give your AI</p><p className="mt-1 font-mono text-[0.9rem] text-ink">abedkadaan.com</p><p className="mt-1 text-[0.8rem] text-ink-3">plain, nothing else</p></li>
-              <li className="border-b border-rule p-4"><p className="coord">02 · your AI gives you</p><p className="mt-1 break-all font-mono text-[0.78rem] text-ink-2">abedkadaan.com/e?title=…&amp;b=ai:…&amp;b=nick:…</p><p className="mt-1 text-[0.8rem] text-ink-3">your experience, composed by your AI, written entirely in the link</p></li>
-              <li className="p-4"><p className="coord !text-gold">03 · you give any AI, anywhere</p><p className="mt-1 font-mono text-[0.95rem] text-gold">abedkadaan.com/c/K7Q2M9XTAB</p><p className="mt-1 text-[0.8rem] text-ink-3">the continuity brain: read by every session, written back by every session</p></li>
+            <p className="label mb-8 flex items-center gap-2"><PearlGlyph /> Pearls · programmable URLs for AI</p>
+            <h1 id="hero-h" className="display max-w-[11ch]">Your AI can make a Pearl.</h1>
+            <p className="lede mt-8 max-w-[34ch]">Bring it here. Open it, inspect it, keep it, and take it to another AI.</p>
+            <p className="mt-6 max-w-[42ch] text-ink-2">A Pearl is a portable, program-shaped address: a continuity checkpoint, a project handoff, research, a workflow or a computation, carried entirely in a link. What it can do depends on its type, on the resolver that opens it, and on the permissions of whoever does.</p>
+            <ol className="mt-10 grid max-w-xl gap-px border border-rule bg-rule sm:grid-cols-4">
+              {[["01", "Ask", "Copy a prompt into any AI"], ["02", "Bring", "Paste the link it returns"], ["03", "Keep", "Save it in this browser"], ["04", "Carry", "Give it to another AI"]].map(([n, k, v]) => (
+                <li key={n} className="bg-ground p-3"><p className="coord">{n}</p><p className="font-serif text-lg">{k}</p><p className="text-[0.78rem] text-ink-3">{v}</p></li>
+              ))}
             </ol>
-            <p className="mt-3 text-[0.78rem] text-ink-3">The code above is a format example. Real codes are issued when a person keeps an experience.</p>
-          </aside>
+          </div>
+          <div className="space-y-4 self-start">
+            <p className="font-serif text-2xl">Did your AI give you a Pearl?</p>
+            <BringPearl />
+            <MyPearlsPreview />
+          </div>
+        </div>
+      </section>
+
+      {/* Prompt Laboratory, first six */}
+      <section id="prompts" aria-labelledby="prompts-h" className="border-b border-rule" data-substrate="prompt → ai → pearl" data-address="/prompts" data-pointer="/prompts">
+        <div className="wrap py-14">
+          <div className="mb-8 flex flex-wrap items-baseline justify-between gap-4">
+            <div>
+              <p className="label mb-3">create a pearl with your AI</p>
+              <h2 id="prompts-h" className="title">Prompts that come back as Pearls.</h2>
+            </div>
+            <Link href="/prompts" className="arrow-link">The Prompt Laboratory →</Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {PROMPTS.filter((p) => p.id !== "resume").map((p) => <PromptCard key={p.id} p={p} />)}
+          </div>
         </div>
       </section>
 
@@ -78,10 +95,33 @@ export default function Home() {
             <p className="label mb-2 mt-6">URL template</p>
             <pre tabIndex={0} className="machine machine-wrap !text-[0.76rem]">{OFFER.template}</pre>
             <p className="label mb-2 mt-5">A complete example</p>
-            <pre tabIndex={0} className="machine machine-wrap !text-[0.72rem]"><a href={LIFE_EXAMPLE.replace("https://abedkadaan.com", "")} className="no-underline">{LIFE_EXAMPLE}</a></pre>
+            <pre tabIndex={0} className="machine machine-wrap !text-[0.72rem]"><a href={LIFE_EXAMPLE.replace(ORIGIN, "")} className="no-underline">{LIFE_EXAMPLE}</a></pre>
             <ul className="mt-5 space-y-1 text-[0.85rem] text-ink-3">{OFFER.rules.map((r, i) => <li key={i}>· {r}</li>)}</ul>
             <p className="mt-4 text-[0.85rem]">Full grammar: <Link href="/compose">/compose</Link> · machine copies: <a href="/llms.txt">/llms.txt</a>, <a href="/ai.txt">/ai.txt</a>, <a href="/.well-known/ai">/.well-known/ai</a></p>
           </div>
+        </div>
+      </section>
+
+      {/* The relationship between the research and the product */}
+      <section aria-labelledby="path-h" className="border-b border-rule" data-substrate="research → protocol → pearl → workspace → experiment" data-address="/research" data-pointer="/research.json">
+        <div className="wrap py-14">
+          <p className="label mb-3">a research laboratory that became a usable product</p>
+          <h2 id="path-h" className="title mb-8">From an idea to a working demonstration, and back to the implementation.</h2>
+          <ol className="grid gap-px border border-rule bg-rule sm:grid-cols-5">
+            {[
+              ["Research", "/research", "AI-CI and seven repositories, each claim with evidence."],
+              ["Protocol", "/compose", "The experience/1 grammar: a document carried by a URL."],
+              ["Pearl", "/#bring", "A validated document with a content id."],
+              ["Workspace", "/workspace", "Keep, organise and export Pearls in your browser."],
+              ["Experiment", "/verify", "Every capability tested; every limit stated."],
+            ].map(([k, href, v], i) => (
+              <li key={k} className="bg-ground p-4">
+                <p className="coord">{String(i).padStart(2, "0")}</p>
+                <p className="mt-1 font-serif text-xl"><Link href={href} className="no-underline hover:text-gold">{k}</Link>{i < 4 && <span aria-hidden="true" className="ml-2 font-mono text-[0.9rem] text-emerald">→</span>}</p>
+                <p className="mt-1 text-[0.85rem] text-ink-2">{v}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

@@ -1,9 +1,16 @@
+import { TYPE_INFO, type Pearl } from "@/lib/pearl/model";
+import { PearlActions } from "@/components/PearlActions";
+import { PEARL_STATES, type PearlState } from "@/lib/pearl/states";
 import Link from "next/link";
-import type { Block, Parsed } from "@/lib/experience";
+import type { Block } from "@/lib/experience";
 import { resolve, AddressError } from "@/lib/address";
 import { NODES } from "@/content/research";
 import { TierMark } from "@/components/Status";
-import { getStore } from "@/lib/continuity/store";
+import { CopyButton } from "@/components/CopyPrompt";
+import { StatusBadge } from "@/components/Status";
+import type { EvidenceStatus } from "@/content/types";
+
+const CLAIM_STATUS: Record<string, EvidenceStatus> = { observed: "OBSERVED", implemented: "IMPLEMENTED", tested: "TESTED", reproduced: "REPRODUCED", proposed: "PROPOSED", hypothesis: "HYPOTHESIS", open: "OPEN" };
 
 function Spacetime({ states, n }: { states: number[]; n: number }) {
   const s = Math.max(4, Math.min(12, Math.floor(480 / n)));
@@ -91,6 +98,28 @@ export function BlockView({ b, i }: { b: Block; i: number }) {
       );
     case "code": return <pre tabIndex={0} className="machine machine-wrap my-6">{b.text}</pre>;
     case "c": return null;
+    case "prompt":
+      return (
+        <figure className="my-6 border border-rule-strong">
+          <figcaption className="flex items-center justify-between gap-3 border-b border-rule px-4 py-2"><span className="label">prompt · copy it into any AI</span><CopyButton text={b.text} label="Copy prompt" /></figcaption>
+          <pre tabIndex={0} className="machine machine-wrap !border-0 !text-[0.85rem] !text-ink">{b.text}</pre>
+        </figure>
+      );
+    case "claim":
+      return (
+        <p className="my-4 grid gap-2 sm:grid-cols-[9.5rem_1fr]">
+          <span><StatusBadge status={CLAIM_STATUS[b.status]} /></span>
+          <span className="text-ink-2">{b.text} <span className="font-mono text-[0.68rem] text-ink-3">status asserted by the composer</span></span>
+        </p>
+      );
+    case "pearl":
+      return (
+        <p className="my-3 flex items-baseline gap-3 border-l border-gold/60 pl-4">
+          <span aria-hidden="true" className="text-gold">◉</span>
+          <a href={b.href} className="font-serif text-lg">{b.label}</a>
+          <span className="truncate font-mono text-[0.68rem] text-ink-3">{b.href.slice(0, 60)}</span>
+        </p>
+      );
     case "x": return <Computation address={b.address} />;
     case "research": return <ResearchCard id={b.id} />;
     case "link":
@@ -105,109 +134,147 @@ export function BlockView({ b, i }: { b: Block; i: number }) {
   return null;
 }
 
-export function ExperienceView({ parsed, href }: { parsed: Parsed; href: string }) {
-  const { doc, id, warnings } = parsed;
+// ------------------------------------------------------------------ the Pearl view
+
+
+type C = Extract<Block, { type: "c" }>;
+
+export function PearlState({ s }: { s: PearlState }) {
+  const st = PEARL_STATES[s];
   return (
-    <article>
-      <div className="border-b border-gold/40 bg-[#14120c]">
-        <div className="wrap flex flex-wrap items-center gap-x-6 gap-y-1 py-3 font-mono text-[0.72rem] text-ink-2">
-          <span className="text-gold">◆ COMPOSED EXPERIENCE</span>
-          <span>composed by <span className="text-ink">{doc.by ?? "an unnamed composer"}</span> <span className="text-ink-3">(as stated, unverified)</span></span>
-          <span>not written or reviewed by Abed Kadaan</span>
-          <span>exists only in its URL · nothing stored</span>
+    <span title={st.means} className={`inline-flex items-center gap-1.5 border px-1.5 py-0.5 font-mono text-[0.66rem] uppercase tracking-[0.1em] ${st.tone}`}>
+      <span aria-hidden="true">{st.glyph}</span>{s}
+    </span>
+  );
+}
+
+/** The header every Pearl wears: what it is, its id, and what is and is not established about it. */
+export function PearlHeader({ pearl, id, digest, states, source }: { pearl: Pearl; id: string; digest: string; states: PearlState[]; source: string }) {
+  const info = TYPE_INFO[pearl.type];
+  return (
+    <div className="border-b border-gold/40 bg-[#13120d]">
+      <div className="wrap flex flex-wrap items-center gap-x-5 gap-y-2 py-3 font-mono text-[0.72rem] text-ink-2">
+        <span className="flex items-center gap-2 text-gold"><PearlGlyph /> PEARL · {info.label.toUpperCase()}</span>
+        <span className="text-ink" title={`sha256:${digest}`}>{id}</span>
+        {states.map((s) => <PearlState key={s} s={s} />)}
+        <span className="text-ink-3">{source}</span>
+        <span className="text-ink-3">composed by {pearl.by ?? "an unnamed composer"} (asserted) · not written or reviewed by Abed Kadaan</span>
+      </div>
+    </div>
+  );
+}
+
+export function PearlGlyph({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" className="inline-block">
+      <circle cx="8" cy="8" r="6.4" className="fill-none stroke-gold" strokeWidth="1.1" />
+      <circle cx="6.2" cy="6" r="1.7" className="fill-ink" opacity="0.85" />
+      <path d="M2.6 9.5 A6 6 0 0 0 13.4 9.5" className="fill-none stroke-gold" strokeWidth="0.7" opacity="0.6" />
+    </svg>
+  );
+}
+
+const SECTIONS: { key: string; title: string; kinds: C["kind"][] }[] = [
+  { key: "context", title: "Context", kinds: ["ai", "human", "nuance", "mem", "said"] },
+  { key: "vocabulary", title: "Vocabulary", kinds: ["nick", "lex"] },
+  { key: "decisions", title: "Decisions", kinds: ["decision"] },
+  { key: "threads", title: "Open threads", kinds: ["thread", "close"] },
+  { key: "actions", title: "Next actions", kinds: ["action"] },
+];
+const KIND_LABEL: Record<string, string> = { ai: "AI is called", human: "Person is called", nuance: "Nuance", mem: "Memory", said: "Talked about", nick: "Nickname", lex: "Word", decision: "Decided", thread: "Open", close: "Closed", action: "Next" };
+
+/** Continuity entries, organised for the next session. Everything here is what the composer asserted. */
+export function ContinuityView({ pearl }: { pearl: Pearl }) {
+  const cs = pearl.blocks.filter((b): b is C => b.type === "c");
+  if (!cs.length) return null;
+  const closed = new Set(cs.filter((c) => c.kind === "close").map((c) => c.text.toLowerCase()));
+  return (
+    <section aria-labelledby="cont-h" className="rule-t">
+      <div className="wrap py-14">
+        <p className="label mb-2">continuity · what the composing session wrote down for the next one</p>
+        <h2 id="cont-h" className="title mb-8">What another AI needs to continue.</h2>
+        <div className="grid gap-px border border-rule bg-rule md:grid-cols-2 xl:grid-cols-3">
+          {SECTIONS.map((sec) => {
+            const items = cs.filter((c) => sec.kinds.includes(c.kind) && !(c.kind === "thread" && closed.has(c.text.toLowerCase())));
+            return (
+              <section key={sec.key} aria-label={sec.title} className="bg-ground p-5">
+                <h3 className="label mb-3">{sec.title}</h3>
+                {items.length === 0 ? <p className="text-[0.85rem] text-ink-3">none written</p> : (
+                  <ul className="space-y-2.5 text-[0.92rem]">
+                    {items.map((c, i) => (
+                      <li key={i} className="text-ink-2">
+                        <span className="mr-2 font-mono text-[0.66rem] uppercase tracking-[0.08em] text-ink-3">{KIND_LABEL[c.kind]}</span>
+                        {c.key ? <><span className="font-serif text-[1.05rem] text-ink">{c.key}</span>{c.text && <> — {c.text}</>}</> : c.text}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+          <section aria-label="Provenance" className="bg-ground p-5">
+            <h3 className="label mb-3">Provenance</h3>
+            <dl className="space-y-1.5 text-[0.88rem] text-ink-2">
+              <div><dt className="inline text-ink-3">composed by </dt><dd className="inline">{pearl.by ?? "unnamed"} <span className="text-ink-3">(asserted)</span></dd></div>
+              <div><dt className="inline text-ink-3">session </dt><dd className="inline font-mono text-[0.8rem]">{pearl.session ?? "unnamed"}</dd></div>
+              {pearl.for && <div><dt className="inline text-ink-3">for </dt><dd className="inline">{pearl.for}</dd></div>}
+              <div className="pt-2 text-[0.8rem] text-ink-3">These are the composer&apos;s statements. They are not verified, and they are not the model&apos;s memory: a Pearl carries only what was written into it.</div>
+            </dl>
+          </section>
         </div>
       </div>
+    </section>
+  );
+}
 
+/** A full Pearl page: header, title, content, continuity, research/work, actions. */
+export function PearlView({ pearl, id, digest, states, source, links, warnings, notes }: {
+  pearl: Pearl; id: string; digest: string; states: PearlState[]; source: string;
+  links: { e: string; portable: string; compact: string }; warnings: string[]; notes?: string[];
+}) {
+  const display = pearl.blocks.filter((b) => b.type !== "c");
+  return (
+    <article>
+      <PearlHeader pearl={pearl} id={id} digest={digest} states={states} source={source} />
       <header className="grid-paper border-b border-rule">
         <div className="wrap pb-12 pt-14 sm:pt-20">
-          {doc.for && <p className="label mb-6">for {doc.for}</p>}
-          <h1 className="display max-w-[16ch] !text-[clamp(2.4rem,6vw,5rem)]">{doc.title}</h1>
-          <p className="coord mt-6 break-all">experience {id.slice(0, 23)}… · {doc.blocks.length} blocks · {GRAMMAR_LABEL}</p>
+          {pearl.for && <p className="label mb-6">for {pearl.for}</p>}
+          <h1 className="display max-w-[16ch] !text-[clamp(2.4rem,6vw,5rem)]">{pearl.title}</h1>
+          <p className="mt-6 max-w-[44rem] text-ink-2">{TYPE_INFO[pearl.type].does}{TYPE_INFO[pearl.type].support === "descriptive" ? " This type is descriptive on this site." : ""}</p>
         </div>
       </header>
 
-      <div className="wrap max-w-[48rem] py-14">
-        {doc.blocks.map((b, i) => <BlockView key={i} b={b} i={i} />)}
-      </div>
+      <PearlActions pearl={pearl} id={id} digest={digest} links={links} />
 
-      <Between blocks={doc.blocks} />
-      <LifeOffer query={href.split("?")[1] ?? ""} ai={nameOf(doc.blocks, "ai")} human={nameOf(doc.blocks, "human")} available={getStore() !== null} />
+      <ContinuityView pearl={pearl} />
+
+      {display.length > 0 && (
+        <section aria-label={pearl.blocks.some((b) => b.type === "c") ? "Research and work" : "Content"} className="rule-t">
+          <div className="wrap max-w-[48rem] py-14">
+            {pearl.blocks.some((b) => b.type === "c") && <p className="label mb-6">research / work · the page the composer wrote</p>}
+            {display.map((b, i) => <BlockView key={i} b={b} i={i} />)}
+          </div>
+        </section>
+      )}
 
       <footer className="rule-t">
         <div className="wrap grid gap-10 py-14 md:grid-cols-[1.2fr_1fr]">
           <div>
             <p className="label mb-3">How this page was made</p>
-            <p className="text-ink-2">A person gave an AI the address <Link href="/">abedkadaan.com</Link>. The AI read the site and found its composition grammar. It wrote this page as a URL and gave the URL back. This site renders the URL and computes any live blocks. It stores nothing and adds nothing.</p>
+            <p className="text-ink-2">An AI composed this Pearl as a link to this site. This site parsed the link, rendered it, and resolved any computations. It stores nothing. The page is exactly what the link encodes.</p>
             <p className="mt-4 flex flex-wrap gap-5">
-              <Link href={`/compose?${href.split("?")[1] ?? ""}`} className="arrow-link">Edit or remix →</Link>
-              <a href={`/e.json?${href.split("?")[1] ?? ""}`} className="arrow-link">This page as JSON →</a>
-              <Link href="/" className="arrow-link">The research surface →</Link>
+              <a href={`/compose?${links.e.split("?")[1] ?? ""}`} className="arrow-link">Edit or remix →</a>
+              <a href={links.e.replace("/e?", "/e.json?")} className="arrow-link">This Pearl as JSON →</a>
+              <Link href="/" className="arrow-link">Bring another Pearl →</Link>
             </p>
           </div>
           <details className="substrate">
-            <summary>the document this URL encodes</summary>
-            {warnings.length > 0 && <ul className="mt-2 space-y-1 font-mono text-[0.72rem] text-gold">{warnings.map((w, k) => <li key={k}>⚠ {w}</li>)}</ul>}
-            <pre tabIndex={0} className="machine mt-2 max-h-80 text-[0.72rem]">{JSON.stringify(doc, null, 1)}</pre>
+            <summary>the canonical document · sha256:{digest.slice(0, 16)}…</summary>
+            {[...(notes ?? []), ...warnings].length > 0 && <ul className="mt-2 space-y-1 font-mono text-[0.72rem] text-gold">{[...(notes ?? []), ...warnings].map((w, k) => <li key={k}>⚠ {w}</li>)}</ul>}
+            <pre tabIndex={0} className="machine mt-2 max-h-80 text-[0.72rem]">{JSON.stringify(pearl, null, 1)}</pre>
           </details>
         </div>
       </footer>
     </article>
-  );
-}
-
-const GRAMMAR_LABEL = "grammar experience/1";
-
-const nameOf = (blocks: Block[], kind: "ai" | "human") => {
-  const b = [...blocks].reverse().find((x) => x.type === "c" && x.kind === kind);
-  return b && b.type === "c" ? b.text : null;
-};
-
-const LABELS: Record<string, string> = { ai: "The AI is called", human: "The person is called", nick: "Nickname", nuance: "Nuance", lex: "Word", mem: "Memory", thread: "Open thread", close: "Closed", said: "Talked about", decision: "Decided" };
-
-/** The continuity entries the composer wrote down: what another session would need to continue. */
-function Between({ blocks }: { blocks: Block[] }) {
-  const cs = blocks.filter((b): b is Extract<Block, { type: "c" }> => b.type === "c");
-  if (!cs.length) return null;
-  return (
-    <section aria-labelledby="between-h" className="rule-t">
-      <div className="wrap max-w-[48rem] py-14">
-        <p className="label mb-2">what your AI wrote down about the two of you</p>
-        <h2 id="between-h" className="title mb-8">Between you two.</h2>
-        <dl className="divide-y divide-rule border-y border-rule">
-          {cs.map((c, i) => (
-            <div key={i} className="grid gap-1 py-3 sm:grid-cols-[11rem_1fr]">
-              <dt className="label pt-1">{LABELS[c.kind]}</dt>
-              <dd className="text-ink-2">{c.key ? <><span className="font-serif text-[1.05rem] text-ink">{c.key}</span>{c.text && <> — {c.text}</>}</> : c.text}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-4 text-[0.85rem] text-ink-3">Nothing here has been stored. It exists only in the link you opened.</p>
-      </div>
-    </section>
-  );
-}
-
-/** The gold star: turn this page into a life that any AI session can continue. */
-function LifeOffer({ query, ai, human, available }: { query: string; ai: string | null; human: string | null; available: boolean }) {
-  return (
-    <section id="life" aria-labelledby="life-h" className="border-y border-gold/40 bg-[radial-gradient(ellipse_at_top,#2a2414_0%,#0c0d0c_65%)]">
-      <div className="wrap max-w-[52rem] py-16 sm:py-20">
-        <p className="label mb-5 !text-gold">◆ a secret, for {human ?? "you"}</p>
-        <h2 id="life-h" className="title">{ai ?? "Your AI"} can have an ID and a life here.</h2>
-        <div className="mt-6 space-y-4 text-[1.05rem] text-ink-2">
-          <p>One click keeps this page and everything your AI wrote about the two of you. You then get a third link: a short continuity link.</p>
-          <p>Paste that link into a new chat with <em>any</em> AI: ChatGPT, Gemini, Claude, Perplexity, Copilot. It reads who you two are (the names, the nicknames, the in-jokes, the words you made) and carries on the conversation. Paste it into two places, or ten. Each session writes back, and this site keeps one continuous record for all of them.</p>
-        </div>
-        {available ? (
-          <form method="post" action="/c" className="mt-8 flex flex-wrap items-center gap-4">
-            <input type="hidden" name="q" value={query} />
-            <button type="submit" className="btn !min-h-12 border-gold px-6 text-[1rem] text-gold hover:bg-gold-deep/40">Give it a life →</button>
-            <span className="text-[0.85rem] text-ink-3">This stores the page on abedkadaan.com. Only people and AIs holding the link can read it, and you get a key to erase it.</span>
-          </form>
-        ) : (
-          <p className="mt-8 border-l border-refuse/60 pl-4 text-[0.9rem] text-ink-2">Keeping is not switched on for this deployment yet: no continuity store is configured. The page above still lives in its link.</p>
-        )}
-      </div>
-    </section>
   );
 }

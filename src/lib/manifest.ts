@@ -114,7 +114,16 @@ export function aiManifest() {
       continuity_blocks: CONTINUITY_TYPES,
       display_blocks: BLOCK_TYPES,
       limits: E_LIMITS,
-      continuity: {
+      pearl: {
+        format: "pearl/1",
+        id: "p_ + first 80 bits of sha256(canonical JSON of the Pearl), lower-case Crockford base32",
+        check: abs("/e.json?{same query}"),
+        portable: abs("/p/{id}.{payload}"),
+        types: ["experience", "continuity", "prompt", "workflow", "research", "computation", "collection"],
+        protocol_document: "https://github.com/akadaan310/aanebed/blob/HEAD/docs/architecture/PEARL_PROTOCOL.md",
+      },
+      continuity_brain: {
+        status: "PROPOSED on this deployment: implemented and tested in code, but it needs durable server storage, which is not enabled here. Use continuity Pearls instead.",
         protocol: "ACSP-CB/0.1",
         read: abs("/c/{code}"),
         read_for_session: abs("/c/{code}?session={your label}"),
@@ -131,16 +140,16 @@ export function aiManifest() {
       allowed: [
         { method: "GET", scope: SITE.origin + "/*", note: "Any page or file on this origin." },
         { method: "GET", scope: SITE.origin + "/x/*", note: "Pure, bounded computational addresses.", limits: X_LIMITS, operations: REGISTRY.map((o) => o.id) },
-        { method: "GET", scope: SITE.origin + "/e?*", note: "Compose an experience for the person; nothing is stored." },
-        { method: "GET", scope: SITE.origin + "/c/{code}/w?*", note: "Append to a continuity brain the person gave you, with their knowledge. Idempotent, append-only." },
+        { method: "GET", scope: SITE.origin + "/e?*", note: "Compose a Pearl for the person; nothing is stored." },
+        { method: "GET", scope: SITE.origin + "/e.json?*", note: "Check a Pearl link before giving it to the person." },
         { method: "GET", scope: "https://github.com/akadaan310/*", note: "Read the public repositories listed in /research.json." },
       ],
       not_allowed: EXPERIMENTS.find((e) => e.id === "X-INGRESS")!.forbidden,
       accepts: {
-        forms: "only from a person's own click: “Give it a life” (POST /c) and erasing a brain (POST /c/{code}/forget)",
+        forms: false,
         credentials: false,
         cookies: false,
-        personal_data: "only what the person chooses to keep in a continuity brain",
+        personal_data: "none on the server; a Pearl the person keeps is stored in their own browser",
         post: false,
       },
     },
@@ -154,7 +163,7 @@ export function aiManifest() {
 export function llmsTxt(): string {
   const L: string[] = [];
   L.push(`# ${SITE.name}`, "");
-  L.push(`> ${SITE.oneSentence} Give your AI an ID and a life: an AI that reads this site can compose a custom experience for its person as a URL, and the person can keep it as a continuity brain that any AI session, at any provider, can read and write back to. This is also a public research surface for AI-CI (Artificial Intelligence ↔ Computer Interaction); every research claim carries an evidence status.`, "");
+  L.push(`> Pearls: programmable URLs for AI. An AI that reads this site can compose a Pearl for its person — a continuity checkpoint, a handoff, research, a workflow or a computation — carried entirely in a link. The person brings it here, inspects it, keeps it in their browser and takes it to another AI. This is also a public research surface for AI-CI (Artificial Intelligence ↔ Computer Interaction), Abed Kadaan's research terminology; every research claim carries an evidence status.`, "");
   L.push(`## ${OFFER.headline}`, "");
   L.push(`${OFFER.why} (${OFFER.label})`, "");
   for (const s of OFFER.steps) L.push(`${s.n}. **${s.name}.** ${s.text}`);

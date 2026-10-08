@@ -15,7 +15,7 @@ test("the documented example parses with no errors or warnings", () => {
 });
 
 test("round trip: experienceUrl → parse gives the same blocks, and the id is stable", () => {
-  const url = experienceUrl("https://abedkadaan.com", { title: "T & U", by: "Gemini", for: "a student", lines: ["h:Hi", "list:a|b|c", "table:A;B|1;2", "facts:k=v|x=y", "quote:Q|Who", "link:https://example.org/x?y=1|Example"] });
+  const url = experienceUrl("https://aanebed.vercel.app", { title: "T & U", by: "Gemini", for: "a student", lines: ["h:Hi", "list:a|b|c", "table:A;B|1;2", "facts:k=v|x=y", "quote:Q|Who", "link:https://example.org/x?y=1|Example"] });
   const a = parse(url), b = parse(url);
   assert.equal(a.id, b.id);
   assert.deepEqual(a.errors, []);
@@ -56,7 +56,7 @@ test("strips bidi overrides and control characters", () => {
 });
 
 test("computation blocks accept only address-shaped paths; research blocks only known nodes", () => {
-  const r = parseExperience(new URLSearchParams([["title", "x"], ["b", "x:https://abedkadaan.com/x/map/eca/90/8/state/5/next"], ["b", "x:../../etc/passwd"], ["b", "research:nope"], ["b", "research:PURL"]]), IDS);
+  const r = parseExperience(new URLSearchParams([["title", "x"], ["b", "x:https://aanebed.vercel.app/x/map/eca/90/8/state/5/next"], ["b", "x:../../etc/passwd"], ["b", "research:nope"], ["b", "research:PURL"]]), IDS);
   assert.deepEqual(r.doc.blocks, [{ type: "x", address: "/map/eca/90/8/state/5/next" }, { type: "research", id: "purl" }]);
 });
 

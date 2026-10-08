@@ -18,14 +18,14 @@ export const NODES: ResearchNode[] = [
     why:
       "Most web interfaces are designed for human eyes only. Machines get them second-hand by scraping, guessing and summarising. If a surface states its structure, its permissions and its evidence explicitly, a machine reader does not have to guess. The human reader then gets something too: an interface that cannot hide behind presentation.",
     implementation: [
-      "Give your AI an ID and a life: an AI composes an experience as a URL (/e?…); the person keeps it as a continuity brain (/c/{code}) that any session can read and write back to.",
+      "Pearls: an AI composes a Pearl as a URL (/e?…); the person inspects it, keeps it in a browser-local library, and carries a portable link (/p/…) to another AI.",
       "This website. Every page has a human layer and a machine layer built from the same typed records.",
       "/llms.txt, /ai.txt, /.well-known/ai and /research.json, with a JSON Schema.",
       "/x: a bounded, pure computational-address resolver that machines may call.",
       "scripts/ingress.ts: a test harness that receives only the root URL and records what it can discover.",
     ],
     demonstrated: [
-      "The three links work end to end for a client that follows the documented grammar: compose, keep, then read and write from several sessions (E-011, E-012).",
+      "A real Claude session composed a valid 12-block continuity Pearl from the site's instructions (E-013). Its link survives every round trip this site supports (E-015).",
       "A URL-only client can reach the research manifest, the topology, the experiments and the evidence from the root URL alone (E-010).",
       "The site's machine layer is served without JavaScript. Pages embed their machine representation in the HTML.",
     ],
@@ -376,8 +376,12 @@ export const CLAIMS: Claim[] = [
   { id: "C-13", node: "ai-ci", statement: "From the root URL alone, a client can discover this site's machine-readable interface, research topology, experiments, evidence and limits.", status: "TESTED", evidence: ["E-010"] },
   { id: "C-14", node: "ai-ci", statement: "Production browsing-capable AI systems will discover and use this site's machine-readable layer when given only the URL.", status: "OPEN", evidence: ["E-009"] },
   { id: "C-15", node: "ai-ci", statement: "This site's computational addresses compute the same values as substrateIO's reference resolver.", status: "REPRODUCED", evidence: ["E-006"] },
-  { id: "C-17", node: "ai-ci", statement: "An experience composed as a URL from the documented grammar renders on this site, can be kept as a continuity brain, and is read and written back by several sessions with one hash-chained record.", status: "TESTED", evidence: ["E-011", "E-012"] },
+  { id: "C-17", node: "ai-ci", statement: "The continuity brain (/c) works end to end where a store is configured: several sessions read and write one hash-chained record. It is not enabled on the live deployment.", status: "TESTED", evidence: ["E-011", "E-012"] },
+  { id: "C-19", node: "ai-ci", statement: "A real AI session, given the site, composed a valid multi-block continuity Pearl.", status: "OBSERVED", evidence: ["E-013", "E-014"] },
+  { id: "C-20", node: "ai-ci", statement: "A Pearl survives parsing, serialisation, a portable link, export and re-import with the same content id; numbered blocks survive URL-normalising fetchers.", status: "TESTED", evidence: ["E-015"] },
+  { id: "C-21", node: "ai-ci", statement: "A Pearl carries hidden model state, or proves who composed it.", status: "OPEN", evidence: [] },
   { id: "C-18", node: "ai-ci", statement: "Production AI assistants given only the plain URL will, unprompted, take stock of the conversation, compose an experience URL and continue a brain in another session.", status: "OPEN", evidence: ["E-012"] },
+  { id: "C-22", node: "ai-ci", statement: "Pearls kept on this site are available on the person's other devices.", status: "OPEN", evidence: [] },
   { id: "C-16", node: "musa", statement: "The theoretical claims in MUSA's strata documents are established results.", status: "OPEN", evidence: [] },
 ];
 

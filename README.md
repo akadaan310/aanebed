@@ -4,29 +4,25 @@ The public research surface of Abed Kadaan, and an experiment in **AI-CI**
 (Artificial Intelligence ↔ Computer Interaction): one web surface that people
 and machine intelligence can both read, enter and operate.
 
-## The main experience: three links
+## Pearls — programmable URLs for AI
 
-```
-01  you give your AI         abedkadaan.com                      plain, nothing else
-02  your AI gives you        abedkadaan.com/e?title=…&b=ai:…     your experience, written entirely in the link
-03  you give any AI          abedkadaan.com/c/K7Q2M9XTAB         the continuity brain: read and written back by every session
-```
+> Your AI can create a Pearl. Bring it here. Open it, inspect it, save it, and take it to another AI.
 
-1. An AI given the plain URL finds, in the page's **visible text** (and in
-   `/llms.txt`, `/ai.txt`, `/.well-known/ai`), a labelled offer. It takes stock
-   of the conversation: names, nicknames, coined words, meaningful misspellings,
-   running jokes, open threads. Then it composes one URL in the grammar at
-   `/compose`.
-2. Opening that URL renders the experience (`/e?…`). Nothing is stored. One
-   click on **Give it a life** (the person's consent) keeps it.
-3. The person gets a short continuity link `/c/{code}` to paste into any number
-   of AI sessions, at any provider. Each reads the brain and continues. Each
-   writes back with `/c/{code}/w?session=…&b=said:…`, either itself or by handing
-   the person the link to click.
+A Pearl is a validated document carried entirely by a URL: a continuity checkpoint, a project handoff,
+research, a reusable prompt or workflow, a computation, or a collection.
 
-What persists is a written record that sessions read and choose to continue. No
-model is copied or moved, and session identities are asserted, not proven. The
-site says so wherever it matters.
+1. **Ask.** Copy a prompt from `/prompts` into any AI. It composes a link:
+   `https://aanebed.vercel.app/e?type=continuity&title=…&b1=ai:…&b2=human:…`.
+2. **Bring.** Paste the link, or the whole message it came in, into *Bring your Pearl* on the home page.
+   It is parsed in the browser (nothing is sent or fetched), given a content id (`p_…`), and explained.
+3. **Keep.** Save it to *My Pearls* (`/workspace`): a library, spaces, projects, notes and tasks
+   **stored in this browser only**, with validated export and import.
+4. **Carry.** Copy a portable link (`/p/{id}.{payload}`, compressed and self-contained) and give it to
+   another AI. When it composes an updated Pearl, bring that back: both versions are kept.
+
+The protocol (types, grammar, canonical form, id, resolver, limits, trust boundaries) is in
+`docs/architecture/PEARL_PROTOCOL.md`; the path to shared storage in `docs/architecture/FUTURE_PERSISTENCE.md`.
+The origin is configured in one place: `src/config/origin.ts` (`https://aanebed.vercel.app`).
 
 ## Built on the research
 
@@ -49,10 +45,15 @@ npm run dev                                  # memory store in development
 npm test                                     # unit tests (resolver, manifest, grammar, continuity)
 npm run build && CONTINUITY_STORE=memory npm start -- -p 3100
 BASE_URL=http://localhost:3100 npm run test:ingress     # the AI-ingress simulation (writes verification/ingress-results.json)
+npm run test:smoke                                      # live-origin smoke test against https://aanebed.vercel.app
 NO_SERVER=1 npx playwright test                         # browser matrix (desktop + mobile, axe, keyboard, no-JS…)
 ```
 
-## Deploy (Vercel + Supabase)
+## Deploy
+
+Pushing to `ccr-d6dc9f9c-fvwlfi` redeploys the Vercel project. No environment variables are needed.
+
+### Optional, not enabled: continuity-brain storage (Supabase)
 
 1. Create a Supabase project. Apply `supabase/migrations/0001_continuity_brain.sql`
    (`supabase db push`, or paste it into the SQL editor). It creates two tables

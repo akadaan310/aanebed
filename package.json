@@ -1,6 +1,6 @@
 {
   "name": "abedkadaan-research-surface",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "abedkadaan.com \u2014 the public research surface of Abed Kadaan (AI-CI, programmable URLs, continuity, Golden Surface, substrate).",
   "license": "UNLICENSED",
@@ -17,7 +17,8 @@
     "test:browser": "playwright test",
     "test:ingress": "tsx scripts/ingress.ts",
     "test:links": "tsx scripts/check-links.ts",
-    "verify": "npm run typecheck && npm run test:unit && npm run build"
+    "verify": "npm run typecheck && npm run test:unit && npm run build",
+    "test:smoke": "tsx scripts/smoke.ts"
   },
   "dependencies": {
     "next": "16.3.8",

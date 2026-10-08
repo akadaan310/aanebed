@@ -5,10 +5,11 @@ import { NODES } from "@/content/research";
 import { SubstrateLayer } from "@/components/Substrate";
 import { Composer } from "@/components/Composer";
 import { CopyButton } from "@/components/CopyPrompt";
+import { ORIGIN } from "@/config/origin";
 
 export const metadata: Metadata = {
   title: "Compose",
-  description: "The grammar an AI uses to compose an experience on abedkadaan.com, as a URL, and to give a conversation a continuity brain that any AI session can continue.",
+  description: "The grammar an AI uses to compose an experience on this site: a Pearl, carried entirely in a URL.",
   alternates: { canonical: "/compose" },
 };
 
@@ -29,8 +30,8 @@ export default async function Compose({ searchParams }: Props) {
       <header className="border-b border-rule" data-substrate="grammar → blocks → url → experience → life" data-address="/compose" data-pointer="/.well-known/ai#/compose">
         <div className="wrap pb-12 pt-14 sm:pt-20">
           <p className="label mb-8">§ compose · grammar experience/1</p>
-          <h1 className="title max-w-[20ch] !text-[clamp(2.2rem,5vw,4rem)]">A page that lives entirely in its link.</h1>
-          <p className="lede measure mt-6 text-ink-2">An AI composes it by writing a URL. Opening the URL renders it. Keeping it gives it a continuity brain. This is the grammar, for machines and for people.</p>
+          <h1 className="title max-w-[20ch] !text-[clamp(2.2rem,5vw,4rem)]">The Pearl grammar.</h1>
+          <p className="lede measure mt-6 text-ink-2">A Pearl is a document carried by a URL. An AI composes it by writing the link; opening the link renders it. This is the grammar, for machines and for people.</p>
         </div>
       </header>
 
@@ -65,9 +66,14 @@ export default async function Compose({ searchParams }: Props) {
         </section>
 
         <section aria-labelledby="write-h">
-          <h2 id="write-h" className="label mb-4">Writing back to a continuity brain</h2>
-          <pre tabIndex={0} className="machine machine-wrap">https://abedkadaan.com/c/&lt;code&gt;/w?session=&lt;your label&gt;&amp;by=&lt;your model&gt;&amp;b=said:&lt;…&gt;&amp;b=nuance:&lt;…&gt;&amp;b=thread:&lt;…&gt;&amp;b=close:&lt;…&gt;</pre>
-          <p className="mt-3 max-w-[48rem] text-ink-2">The same grammar, sent to a brain&apos;s write address. Open it yourself, or give it to the person to click; either saves it. Writes are append-only and idempotent: the same link twice saves once. Display blocks sent here replace the brain&apos;s page. <code>/c/&lt;code&gt;?session=&lt;your label&gt;</code> shows what is new since you last wrote.</p>
+          <h2 id="write-h" className="label mb-4">Robust links: numbered blocks, encoding, and checking</h2>
+          <ul className="max-w-[52rem] space-y-2 text-ink-2">
+            <li className="border-l border-rule pl-4"><strong className="text-ink">Number the blocks</strong> (b1=, b2=, …). Some AI fetchers sort query keys or keep only the first of repeated keys; numbered blocks come back complete and in order. Repeated b= still works.</li>
+            <li className="border-l border-rule pl-4"><strong className="text-ink">Encode</strong> &amp; as %26, # as %23, + as %2B and % as %25; write spaces as +. A raw # cuts the link short in every browser; this site recovers it when the link is pasted into Bring your Pearl.</li>
+            <li className="border-l border-rule pl-4"><strong className="text-ink">s=</strong> carries all blocks in one parameter, one per line. Lines are separated by %0A or by the two characters \n.</li>
+            <li className="border-l border-rule pl-4"><strong className="text-ink">Check</strong> any link by opening it with /e.json instead of /e: you get valid, the parsed blocks, the Pearl id, and <code>received</code>, the parameters that actually arrived.</li>
+            <li className="border-l border-rule pl-4"><strong className="text-ink">Updating</strong> a Pearl means composing a new one. The original link and its id never change.</li>
+          </ul>
         </section>
 
         <section aria-labelledby="try-h">

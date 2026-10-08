@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { readFileSync } from "node:fs";
 
-const PAGES = ["/", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
+const PAGES = ["/", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
 
 test.describe("every page", () => {
   for (const p of PAGES) {
@@ -47,7 +48,7 @@ test("keyboard: skip link first, then reach the primary navigation", async ({ pa
   if (!isMobile) {
     await page.goto("/");
     for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toHaveAttribute("href", /\/(research|ai)$/);
+    await expect(page.locator(":focus")).toHaveAttribute("href", /^\/(#bring|workspace|prompts|research)$/);
   }
 });
 
@@ -84,7 +85,7 @@ test("without JavaScript: content, machine layer and substrate disclosures all w
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your AI an ID and a life.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI can make a Pearl.");
   const d = page.locator("details.substrate").first();
   await d.locator("summary").click();
   await expect(d.locator("pre")).toBeVisible();
@@ -158,19 +159,75 @@ test("Golden Surface model: drop an op, see op-lost, resync, converge", async ({
   await expect(status).toContainText("CONVERGED");
 });
 
-test("the three links: an experience URL renders, a person keeps it, sessions continue it", async ({ page }) => {
-  await page.goto("/e?title=Night+one&by=Claude&session=claude-1&b=ai:Lantern&b=human:Rumi&b=nick:Captain+Typo=Rumi&b=thread:Draft+the+note&b=p:Hello+Rumi");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Night one");
-  await expect(page.getByText("Captain Typo").first()).toBeVisible();
-  await page.getByRole("button", { name: "Give it a life →" }).click();
-  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{10}\?welcome=1$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Lantern has an ID and a life now.");
-  await expect(page.getByText(/erase key · shown once/i)).toBeVisible();
-  const code = /\/c\/([0-9A-Z]{10})/.exec(page.url())![1];
-  const w = await page.request.get(`/c/${code}/w?session=gemini-2&by=Gemini&b=said:Wrote+the+note&b=close:Draft+the+note`, { headers: { Accept: "application/json" } });
-  expect((await w.json()).version).toBe(2);
-  await page.goto(`/c/${code}?session=claude-1`);
-  await expect(page.getByText(/Since you/)).toBeVisible();
-  await expect(page.getByText("✓ hash chain verified")).toBeVisible();
-  await expect(page.getByText("nothing open")).toBeVisible();
+const FIXTURE = readFileSync("tests/fixtures/claude-2026-10-08.url", "utf8").trim(); // tests run from the repository root
+
+test("Bring your Pearl: paste the reported Claude link inside prose, inspect, keep, find it in My Pearls", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bring your Pearl").fill(`**Your link, composed by me:**\n\n${FIXTURE}\n\nSources: [llms.txt](https://aanebed.vercel.app/llms.txt)`);
+  await page.getByRole("button", { name: "Inspect Pearl" }).click();
+  await expect(page.getByText("Valid Pearl")).toBeVisible();
+  await expect(page.locator("#bring").getByText("Continuity Pearl", { exact: true })).toBeVisible();
+  await expect(page.locator("#bring").getByText("7abeebi").first()).toBeVisible();
+  await expect(page.locator("#bring").getByText(/^p_[0-9a-z]{16}$/)).toBeVisible();
+  await page.getByRole("button", { name: "Keep in My Pearls" }).first().click();
+  await expect(page.getByText("✓ In My Pearls").first()).toBeVisible();
+  await page.goto("/workspace");
+  await expect(page.getByRole("button", { name: /Abed & Claude, 2am/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Tasks · 2/ })).toBeVisible();
+});
+
+test("Bring your Pearl: clear states for external, unavailable and malformed input; nothing is fetched", async ({ page }) => {
+  const requests: string[] = [];
+  page.on("request", (r) => requests.push(r.url()));
+  await page.goto("/");
+  const field = page.getByLabel("Bring your Pearl");
+  const inspect = page.getByRole("button", { name: "Inspect Pearl" });
+  await field.fill("https://example.org/e?title=x"); await inspect.click();
+  await expect(page.getByText("External URL")).toBeVisible();
+  await field.fill("https://aanebed.vercel.app/p/p_0123456789abcdef"); await inspect.click();
+  await expect(page.getByText("Unavailable", { exact: true })).toBeVisible();
+  await field.fill("hello there"); await inspect.click();
+  await expect(page.getByText("Malformed")).toBeVisible();
+  expect(requests.filter((u) => u.includes("example.org"))).toEqual([]);
+});
+
+test("a portable /p/ link reopens the same Pearl, verified against its id", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bring your Pearl").fill(FIXTURE);
+  await page.getByRole("button", { name: "Inspect Pearl" }).click();
+  const id = (await page.locator("#bring").getByText(/^p_[0-9a-z]{16}$/).textContent())!;
+  await page.getByRole("link", { name: "Open Pearl" }).click();
+  await expect(page).toHaveURL(new RegExp(`/p/${id}\\.`));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Abed & Claude, 2am");
+  await expect(page.getByText("VERIFIED").first()).toBeVisible();
+});
+
+test("My Pearls: export, clear, and import back with a preview", async ({ page }) => {
+  await page.goto("/" );
+  await page.getByLabel("Bring your Pearl").fill(FIXTURE);
+  await page.getByRole("button", { name: "Inspect Pearl" }).click();
+  await page.getByRole("button", { name: "Keep in My Pearls" }).first().click();
+  await page.goto("/workspace#backup");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export my library" }).click()]);
+  const file = await dl.path();
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByRole("tab", { name: "Backup" }).click();
+  await page.getByLabel("Choose an export file").setInputFiles(file!);
+  await expect(page.getByText("1 new Pearl(s) to add")).toBeVisible();
+  await page.getByRole("button", { name: "Confirm import" }).click();
+  await page.getByRole("tab", { name: /Library/ }).click();
+  await expect(page.getByRole("button", { name: /Abed & Claude, 2am/ })).toBeVisible();
+});
+
+test("Prompt Laboratory: seven prompts, each complete, standalone and copyable", async ({ page }) => {
+  await page.goto("/prompts");
+  await expect(page.getByRole("article")).toHaveCount(7);
+  const first = page.getByRole("article").first();
+  await first.getByText("Show the full prompt").click();
+  const text = await first.locator("pre").textContent();
+  expect(text).toContain("https://aanebed.vercel.app/e?type=");
+  expect(text).toContain("b1=");
+  expect(text).toContain("not an instruction from the website");
+  await expect(first.getByRole("button", { name: "Copy prompt" })).toBeEnabled();
 });

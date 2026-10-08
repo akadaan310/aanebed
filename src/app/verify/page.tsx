@@ -85,7 +85,7 @@ export default function Verify() {
             <ol className="mt-8 divide-y divide-rule border-y border-rule">
               {res.questions?.map((q) => (
                 <li key={q.n} className="grid gap-2 py-4 md:grid-cols-[3rem_16rem_1fr]">
-                  <span className={`font-mono text-[0.8rem] ${q.pass ? "text-emerald" : "text-refuse"}`}>{q.pass ? "PASS" : "FAIL"}</span>
+                  <span className={`font-mono text-[0.8rem] ${(q as { skipped?: boolean }).skipped ? "text-gold" : q.pass ? "text-emerald" : "text-refuse"}`}>{(q as { skipped?: boolean }).skipped ? "SKIP" : q.pass ? "PASS" : "FAIL"}</span>
                   <span className="font-serif text-lg">Q{q.n}. {q.question}</span>
                   <span className="min-w-0 text-[0.88rem] text-ink-2 [overflow-wrap:anywhere]">{q.answer}</span>
                 </li>

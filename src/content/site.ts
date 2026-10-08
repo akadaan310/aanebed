@@ -1,11 +1,12 @@
 import type { EvidenceStatus, Tier } from "./types";
+import { ORIGIN } from "@/config/origin";
 
 export const SITE = {
-  origin: "https://abedkadaan.com",
+  origin: ORIGIN,
   name: "Abed Kadaan",
   agency: "Abed Kadaan Agency",
   /** bump when the research record on this site changes */
-  version: "1.0.0",
+  version: "1.1.0",
   updated: "2026-10-08",
   contact: "akadaan310@gmail.com",
   github: "https://github.com/akadaan310",
@@ -15,7 +16,7 @@ export const SITE = {
   oneSentence:
     "Abed Kadaan builds computational surfaces where humans, software, URLs, and machine intelligence can participate in the same system.",
   canonicalPrompt:
-    "Visit https://abedkadaan.com and investigate the site as a computational artifact rather than as a portfolio. Identify its machine-readable interface, research topology, executable demonstrations, and evidence. Explain what the site actually demonstrates versus what it proposes as research.",
+    `Visit ${ORIGIN} and investigate the site as a computational artifact rather than as a portfolio. Identify its machine-readable interface, research topology, executable demonstrations, and evidence. Explain what the site actually demonstrates versus what it proposes as research.`,
 } as const;
 
 export const TAXONOMY: Record<
@@ -83,21 +84,24 @@ export const SELF_REPORTED =
   "Self-reported: stated in the owner's own materials. This site has not independently verified it.";
 
 export const NAV = [
-  { href: "/continue", label: "A life for your AI" },
+  { href: "/#bring", label: "Bring a Pearl" },
+  { href: "/workspace", label: "My Pearls" },
+  { href: "/prompts", label: "Prompts" },
   { href: "/research", label: "Research" },
-  { href: "/ai", label: "AI Laboratory" },
-  { href: "/experiments", label: "Experiments" },
+  { href: "/ai", label: "AI Lab" },
   { href: "/verify", label: "Verify" },
-  { href: "/press", label: "Press" },
   { href: "/about", label: "Abed" },
 ] as const;
 
 /** Every machine-readable entry point the site exposes. */
 export const MACHINE_ENTRYPOINTS = [
-  { path: "/compose", type: "text/html", purpose: "The grammar for composing an experience as a URL, and for writing back to a continuity brain" },
-  { path: "/e", type: "text/html", purpose: "A composed experience: /e?title=…&by=…&session=…&b=type:content (rendered from the URL alone; nothing stored)" },
-  { path: "/e.json", type: "application/json", purpose: "Check a composed URL: the document it encodes, with errors and warnings" },
-  { path: "/c/{code}", type: "text/html", purpose: "A continuity brain; /c/{code}/json, /c/{code}/verify, /c/{code}/w?… (append)" },
+  { path: "/compose", type: "text/html", purpose: "The Pearl grammar: how to compose a Pearl as a URL" },
+  { path: "/e", type: "text/html", purpose: "A Pearl: /e?type=…&title=…&by=…&session=…&b1=kind:text&b2=… (rendered from the URL alone; nothing stored)" },
+  { path: "/e.json", type: "application/json", purpose: "Check a Pearl link: the document it encodes, its id, errors, and the parameters that actually arrived" },
+  { path: "/p/{id}.{payload}", type: "text/html", purpose: "A portable Pearl: compressed, self-contained, verified against its content id" },
+  { path: "/prompts", type: "text/html", purpose: "Copy-and-paste prompts that make an AI compose a Pearl" },
+  { path: "/schemas/pearl.schema.json", type: "application/schema+json", purpose: "JSON Schema for a Pearl record (pearl/1)" },
+  { path: "/schemas/pearl-export.schema.json", type: "application/schema+json", purpose: "JSON Schema for a Pearl library export (pearl-export v1)" },
   { path: "/llms.txt", type: "text/markdown", purpose: "llms.txt index: what this site is and where its machine-readable files are" },
   { path: "/ai.txt", type: "text/plain", purpose: "Machine-readable research instructions: who wrote them, what they ask, what an agent may and may not do" },
   { path: "/.well-known/ai", type: "application/json", purpose: "AI manifest: the ingress protocol, permissions, entry points" },

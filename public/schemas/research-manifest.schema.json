@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://abedkadaan.com/schemas/research-manifest.schema.json",
+  "$id": "https://aanebed.vercel.app/schemas/research-manifest.schema.json",
   "title": "Research manifest",
-  "description": "The canonical machine-readable description of abedkadaan.com: identity, research topology, protocols, experiments, repositories, claims with evidence status, evidence records and limitations.",
+  "description": "The canonical machine-readable description of the Pearls research surface (aanebed.vercel.app): identity, research topology, protocols, experiments, repositories, claims with evidence status, evidence records and limitations.",
   "type": "object",
   "required": ["manifest_version", "site_version", "updated", "identity", "thesis", "taxonomy", "research", "relations", "protocols", "experiments", "repositories", "claims", "evidence", "limitations"],
   "properties": {
