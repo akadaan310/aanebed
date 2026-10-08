@@ -28,21 +28,21 @@ const S = Object.fromEntries(SECTIONS.map((s) => [s.id, { "data-substrate": s.su
 
 const count = (t: Tier) => CLAIMS.filter((c) => TAXONOMY[c.status].tier === t).length;
 
-export const metadata = { title: "Explore", description: "The system under Pearls: the URL grammar, computational addresses, continuity, provenance and the research topology.", alternates: { canonical: "/explore" } };
+export const metadata = { title: "Atlas", description: "The system under Pearls: the URL grammar, computational addresses, continuity, provenance and the research topology.", alternates: { canonical: "/atlas" } };
 
 export default function Explore() {
   const cont = node("continuity");
   return (
     <>
-      <SubstrateLayer data={{ page: "/explore", kind: "research-surface", thesis: SITE.thesis, sections: SECTIONS, manifest: "/research.json", ai_manifest: "/.well-known/ai" }} />
+      <SubstrateLayer data={{ page: "/atlas", kind: "research-surface", thesis: SITE.thesis, sections: SECTIONS, manifest: "/research.json", ai_manifest: "/.well-known/ai" }} />
 
-      <section aria-labelledby="hero-h" className="grid-paper relative border-b border-rule" data-substrate="url → grammar → resource → computation → continuity → research" data-address="/explore" data-pointer="/research.json">
+      <section aria-labelledby="hero-h" className="grid-paper relative border-b border-rule" data-substrate="url → grammar → resource → computation → continuity → research" data-address="/atlas" data-pointer="/research.json">
         <div className="wrap pb-16 pt-14 sm:pt-20">
           <p className="label mb-8 flex items-center gap-2"><PearlGlyph /> explore · the system under Pearls</p>
           <h1 id="hero-h" className="display max-w-[13ch]">The web is becoming programmable.</h1>
           <p className="lede mt-8 max-w-[40ch]">{SITE.oneSentence} Pearls are the product; this is the grammar, the computation, the continuity model and the research underneath.</p>
           <ul className="mt-10 flex flex-wrap gap-3 text-[0.9rem]">
-            {[["Live addresses", "/live"], ["Play: the Seven Verbs", "/play"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["AI Laboratory", "/ai"], ["Verify every claim", "/verify"], ["Schemas", "/schemas/pearl.schema.json"]].map(([k, h]) => (
+            {[["Live addresses", "/live"], ["Play: the Seven Verbs", "/verbs"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["AI Laboratory", "/ai"], ["Verify every claim", "/verify"], ["Schemas", "/schemas/pearl.schema.json"]].map(([k, h]) => (
               <li key={h}><a href={h} className="btn">{k}</a></li>
             ))}
           </ul>

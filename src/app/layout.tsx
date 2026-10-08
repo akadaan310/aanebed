@@ -15,8 +15,8 @@ const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variabl
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.origin),
-  title: { default: "Pearls — your AI can make a Pearl", template: "%s · Pearls" },
-  description: `${SITE.oneSentence} A public research surface for AI-CI: Artificial Intelligence ↔ Computer Interaction.`,
+  title: { default: "Pearls — make something worth keeping", template: "%s · Pearls" },
+  description: "Make something with your AI and turn it into a Pearl: something you can keep, grow, and give to a person or another intelligence. No account needed.",
   applicationName: "Abed Kadaan — research surface",
   authors: [{ name: SITE.name, url: SITE.origin }],
   alternates: {
@@ -26,17 +26,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE.name,
-    title: "Abed Kadaan — The web is becoming programmable",
-    description: SITE.oneSentence,
+    title: "Pearls — make something worth keeping",
+    description: "Ideas become Pearls. Pearls can go places.",
     url: SITE.origin,
     locale: "en",
   },
-  twitter: { card: "summary_large_image", title: "Abed Kadaan — The web is becoming programmable", description: SITE.oneSentence },
+  twitter: { card: "summary_large_image", title: "Pearls — make something worth keeping", description: "Ideas become Pearls. Pearls can go places." },
   manifest: "/manifest.json",
   other: { "ai-manifest": "/.well-known/ai", "research-manifest": "/research.json" },
 };
 
-export const viewport: Viewport = { themeColor: "#0b0d18", colorScheme: "dark", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0d0b09", colorScheme: "dark", width: "device-width", initialScale: 1 };
 
 const graph = {
   "@context": "https://schema.org",

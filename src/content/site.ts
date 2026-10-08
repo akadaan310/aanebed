@@ -6,7 +6,7 @@ export const SITE = {
   name: "Abed Kadaan",
   agency: "Abed Kadaan Agency",
   /** bump when the research record on this site changes */
-  version: "7.0.0",
+  version: "8.0.0",
   updated: "2026-10-08",
   contact: "akadaan310@gmail.com",
   github: "https://github.com/akadaan310",
@@ -107,7 +107,7 @@ export const MACHINE_ENTRYPOINTS = [
   { path: "/live/{address}", type: "text/html", purpose: "A computational address as a living object: the browser URL is the address; every command (NEXT, PERTURB, TRACE, ORBIT, BACK) navigates to the next address" },
   { path: "/api/v1/living?u={Pearl link | address}", type: "application/json", purpose: "The living record (living/1) of a Pearl or an address: state, legal affordances with their next addresses, history, related objects, evidence, explanation. The human pages render the same record" },
   { path: "/compare", type: "text/html", purpose: "Compare two Pearls (pearl.diff in the browser)" },
-  { path: "/play", type: "text/html", purpose: "Discovery modes: the Seven Verbs (experimental URL interaction grammar) and a simulated shared surface in Golden Surface's vocabulary" },
+  { path: "/verbs", type: "text/html", purpose: "Discovery modes: the Seven Verbs (experimental URL interaction grammar) and a simulated shared surface in Golden Surface's vocabulary" },
   { path: "/capabilities.json", type: "application/json", purpose: "Capability registry: every operation this site performs by URL (pure GETs), with inputs, outputs, limits and errors" },
   { path: "/prompts", type: "text/html", purpose: "Copy-and-paste prompts that make an AI compose a Pearl" },
   { path: "/schemas/pearl.schema.json", type: "application/schema+json", purpose: "JSON Schema for a Pearl record (pearl/1)" },

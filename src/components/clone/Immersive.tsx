@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export function Immersive() {
   const p = usePathname();
   useEffect(() => {
-    const on = p === "/" || p.startsWith("/clone/");
+    const on = p.startsWith("/clone/");
     if (on) document.documentElement.dataset.immersive = ""; else delete document.documentElement.dataset.immersive;
   }, [p]);
   return null;

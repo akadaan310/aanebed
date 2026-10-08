@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { isProductPath } from "@/components/pearls/paths";
 
 interface Frame { user: string; surface: string; protocol: string; result: string }
 
@@ -11,6 +13,12 @@ interface Frame { user: string; surface: string; protocol: string; result: strin
  * that representation lives in /research.json.
  */
 export function FirstInteraction() {
+  const product = isProductPath(usePathname());
+  return product ? null : <Trace />;
+}
+
+/** The research trace strip: shown downstairs only, never over the product. */
+function Trace() {
   const [frame, setFrame] = useState<Frame | null>(null);
   const [closed, setClosed] = useState(false);
 

@@ -80,7 +80,7 @@ export default async function How() {
             <p className="mt-8 max-w-[46ch] text-[1.02rem] text-ink-2">Nothing in the URL is executed. Each word is looked up in a fixed registry of pure operations, so every address you reach is a real object: copy it, share it, give it to an AI, fork it into a Pearl of your own.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/live/map/eca/90/8/state/5" className="btn-solid">Open it full size</Link>
-              <Link href="/play" className="btn-soft">Play the Seven Verbs</Link>
+              <Link href="/verbs" className="btn-soft">Play the Seven Verbs</Link>
               <Link href="/capabilities" className="btn-soft">What can be called</Link>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default async function How() {
       </section>
 
       {/* Act VI — Curious how it works? */}
-      <section aria-labelledby="how-h" className="surface-research bg-ground text-ink" data-substrate="url → grammar → resource → computation → research" data-address="/explore" data-pointer="/research.json">
+      <section aria-labelledby="how-h" className="surface-research bg-ground text-ink" data-substrate="url → grammar → resource → computation → research" data-address="/atlas" data-pointer="/research.json">
         <div className="wrap act">
           <p className="label mb-6">curious how it works?</p>
           <h2 id="how-h" className="display max-w-[14ch] !text-[clamp(2.4rem,6vw,5rem)]">The web is becoming programmable.</h2>
@@ -186,7 +186,7 @@ export default async function How() {
           <div className="mt-14"><Constellation compact /></div>
 
           <div className="mt-10 flex flex-wrap gap-3">
-            {[["Explore the system", "/explore"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["Verify every claim", "/verify"], ["About Abed", "/about"]].map(([k, h]) => <a key={h} href={h} className="btn">{k}</a>)}
+            {[["Explore the system", "/atlas"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["Verify every claim", "/verify"], ["About Abed", "/about"]].map(([k, h]) => <a key={h} href={h} className="btn">{k}</a>)}
           </div>
 
           <div id="for-ai" className="mt-16 border border-emerald/40 bg-emerald-deep/15 p-5 sm:p-8" data-substrate="offer → take stock → compose → give → continue" data-address="/#for-ai" data-pointer="/.well-known/ai#/compose">

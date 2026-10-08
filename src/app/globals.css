@@ -170,7 +170,7 @@ html[data-mode="explore"] .simple-only { display: none !important; }
   .arrow-link:hover { border-color: var(--color-emerald); color: var(--color-emerald); }
 
   /* Inputs */
-  .field { width: 100%; min-height: 2.75rem; background: var(--color-panel); border: 1px solid var(--color-rule-strong); color: var(--color-ink); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.75rem; }
+  .field { font-family: var(--font-sans); width: 100%; min-height: 2.75rem; background: var(--color-panel); border: 1px solid var(--color-rule-strong); color: var(--color-ink); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.75rem; }
   .field:focus-visible { outline: 2px solid var(--color-emerald); outline-offset: 0; }
 
   /* The substrate disclosure: the second representation of a heading */
@@ -292,4 +292,116 @@ html[data-immersive] .site-nav, html[data-immersive] .site-cta { display: none !
   .step[aria-current="step"] { color: #f5eede; }
   .step b { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; }
   .addr { font-family: var(--font-mono); font-size: clamp(0.8rem, 3.4vw, 1rem); color: #f5eede; word-break: break-all; }
+}
+
+/* ==========================================================================
+ * PEARLS — the product.
+ * A dark, warm room with one lamp; the Pearl is the lit object; the work sits
+ * on paper. Three materials (room, nacre, paper), one serif voice, one sans.
+ * ========================================================================== */
+.room {
+  --r0: #0d0b09; --r1: #16130f; --r2: #201b16;
+  --iv: #f2eadb; --iv2: #cdc2b0; --iv3: #9a8f7d;
+  --line: rgba(242, 234, 219, 0.12); --line2: rgba(242, 234, 219, 0.22);
+  --paper: #f6f0e4; --paper2: #ece3d1; --pink: #1e1a15; --pink2: #574e42; --pink3: #85796a;
+  --lamp: rgba(236, 205, 160, 0.16); --warm: #e9cc9e; --sage: #8fb59c; --rose: #e3a493;
+  color-scheme: dark;
+  color: var(--iv);
+  background:
+    radial-gradient(1100px 620px at 50% -12%, var(--lamp), transparent 62%),
+    radial-gradient(800px 500px at 50% 112%, rgba(150, 120, 90, 0.08), transparent 65%),
+    var(--r0);
+  min-height: calc(100svh - 3.5rem);
+}
+.room ::selection { background: #e9cc9e; color: #1e1a15; }
+:where(.room) a { color: inherit; }
+:where(.room) :is(textarea, input, button) { font-family: inherit; }
+.room :focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; border-radius: 10px; }
+
+.display { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.02em; line-height: 1.02; font-size: clamp(2.5rem, 8.5vw, 5.4rem); font-optical-sizing: auto; }
+.headline { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.015em; line-height: 1.08; font-size: clamp(1.9rem, 5.6vw, 3.2rem); }
+.label { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--iv3); }
+
+/* buttons: ivory for the one thing to do, quiet outlines for the rest */
+.pbtn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 3.25rem; padding: 0.8rem 1.6rem; border-radius: 999px; background: linear-gradient(180deg, #fbf5ea, #eadfca); color: #1e1a15; font-weight: 500; font-size: 1.02rem; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 10px 30px -8px rgba(233, 204, 158, 0.45), 0 2px 4px rgba(0, 0, 0, 0.4); transition: transform 0.18s var(--ease-transition), box-shadow 0.18s; cursor: pointer; text-decoration: none; }
+.pbtn:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 16px 36px -8px rgba(233, 204, 158, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4); }
+.pbtn:disabled { opacity: 0.55; transform: none; cursor: default; }
+.qbtn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 2.75rem; padding: 0.55rem 1.15rem; border-radius: 999px; border: 1px solid var(--line2); color: var(--iv); background: rgba(242, 234, 219, 0.03); font-size: 0.95rem; transition: background 0.15s, border-color 0.15s; cursor: pointer; text-decoration: none; }
+.qbtn:hover { background: rgba(242, 234, 219, 0.08); border-color: rgba(242, 234, 219, 0.35); }
+.qbtn:disabled { opacity: 0.5; cursor: default; }
+.seed { border: 1px dashed var(--line2); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.86rem; color: var(--iv2); transition: color 0.15s, border-color 0.15s; cursor: pointer; text-align: left; }
+.seed:hover { color: var(--iv); border-color: var(--iv3); border-style: solid; }
+
+/* the tray: a slip of paper on the desk, where something begins */
+.tray { background: linear-gradient(180deg, #f8f2e7, #efe6d5); color: #1e1a15; border-radius: 26px; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 40px 80px -30px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.35); }
+.tray textarea { background: transparent; color: #1e1a15; font-family: var(--font-serif); font-size: clamp(1.15rem, 3.6vw, 1.4rem); line-height: 1.45; resize: none; outline: none; width: 100%; }
+.tray textarea::placeholder { color: #8f8372; }
+
+/* paper: where a Pearl's work lives */
+.paper { color-scheme: light; background: linear-gradient(180deg, var(--paper), #f0e8d8); color: var(--pink); border-radius: 22px; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 50px 90px -40px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.3); }
+.paper h2, .paper h3 { font-family: var(--font-serif); color: var(--pink); }
+.paper .muted { color: var(--pink2); }
+:where(.paper) a { color: var(--pink); }
+.paper :focus-visible { outline-color: #8a5a06; }
+.prose-pearl p + p { margin-top: 0.85em; }
+
+/* quiz and cards on paper */
+.opt { display: block; width: 100%; text-align: left; border: 1px solid #d9cdb7; background: #fffaf1; border-radius: 14px; padding: 0.7rem 0.95rem; min-height: 2.9rem; transition: background 0.15s, border-color 0.15s, transform 0.12s; color: #1e1a15; cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: #a99a80; transform: translateY(-1px); }
+.opt[data-state="right"] { background: #e4efe2; border-color: #6f9c78; }
+.opt[data-state="wrong"] { background: #f6e1da; border-color: #c27a66; }
+.opt:disabled { cursor: default; }
+.flip { perspective: 900px; }
+.flip-in { position: relative; transition: transform 0.55s var(--ease-transition); transform-style: preserve-3d; min-height: 8.5rem; }
+.flip[data-on="1"] .flip-in { transform: rotateY(180deg); }
+.flip-face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; border-radius: 16px; border: 1px solid #d9cdb7; background: #fffaf1; }
+.flip-back { transform: rotateY(180deg); background: #f3ead8; }
+
+/* the Pearl object */
+.orb { display: block; filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55)); }
+.orb .luster { transform-origin: 100px 100px; animation: luster 38s linear infinite; }
+.orb.kept { filter: drop-shadow(0 0 22px rgba(233, 204, 158, 0.35)) drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55)); }
+@keyframes luster { to { transform: rotate(360deg); } }
+.forming .orb { animation: breathe 2.4s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.045); filter: drop-shadow(0 0 34px rgba(233, 204, 158, 0.45)) drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55)); } }
+.born .orb { animation: born 1.2s var(--ease-transition) both; }
+@keyframes born { from { transform: scale(0.55) translateY(30px); opacity: 0; filter: blur(6px); } to { transform: none; opacity: 1; filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55)); } }
+.rise { animation: rise 0.9s var(--ease-transition) both; }
+.rise-2 { animation: rise 0.9s 0.25s var(--ease-transition) both; }
+.rise-3 { animation: rise 0.9s 0.5s var(--ease-transition) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* lineage: a thin strand of beads */
+.strand { display: flex; flex-direction: column; align-items: center; gap: 0; font-size: 0.86rem; color: var(--iv2); }
+.strand .bead { width: 7px; height: 7px; border-radius: 99px; background: radial-gradient(circle at 35% 30%, #fff, #d8c9ad 60%, #8f7f64); box-shadow: 0 0 6px rgba(233, 204, 158, 0.35); }
+.strand .sep { display: block; width: 1px; height: 14px; margin: 3px auto; background: var(--line2); }
+
+/* sheets: Keep, Grow, Give */
+dialog.sheet { margin: auto auto 0; width: min(640px, 100%); max-height: 88svh; border: 0; padding: 0; border-radius: 26px 26px 0 0; background: var(--r1, #16130f); color: var(--iv, #f2eadb); box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.6); }
+@media (min-width: 720px) { dialog.sheet { margin: auto; border-radius: 26px; } }
+dialog.sheet::backdrop { background: rgba(8, 6, 4, 0.66); backdrop-filter: blur(3px); }
+dialog.sheet[open] { animation: sheet 0.35s var(--ease-transition); }
+@keyframes sheet { from { transform: translateY(40px); opacity: 0; } }
+.field { font-family: var(--font-sans); width: 100%; border-radius: 16px; border: 1px solid var(--line2); background: rgba(242, 234, 219, 0.04); color: var(--iv); padding: 0.75rem 0.95rem; outline: none; font-size: 0.98rem; }
+.field:focus { border-color: var(--warm); }
+.dock { position: sticky; bottom: 0; z-index: 30; background: linear-gradient(180deg, transparent, rgba(13, 11, 9, 0.92) 30%); padding: 1.4rem 1rem calc(0.9rem + env(safe-area-inset-bottom)); }
+.verb { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.7rem 0.5rem; border-radius: 18px; border: 1px solid var(--line2); background: rgba(26, 22, 18, 0.94); backdrop-filter: blur(10px); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); min-height: 4.2rem; transition: background 0.15s, border-color 0.15s, transform 0.15s; cursor: pointer; }
+.verb:hover { background: rgba(40, 34, 28, 0.96); border-color: var(--line2); transform: translateY(-1px); }
+.verb b { font-weight: 500; font-size: 1rem; color: var(--iv); }
+.verb span { font-size: 0.74rem; color: var(--iv3); }
+.verb[aria-pressed="true"] { border-color: rgba(233, 204, 158, 0.55); background: rgba(52, 43, 32, 0.96); }
+.toast-p { position: fixed; left: 50%; bottom: calc(6.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; background: #f6f0e4; color: #1e1a15; border-radius: 999px; padding: 0.7rem 1.2rem; font-size: 0.92rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6); max-width: calc(100vw - 2rem); }
+
+/* product header */
+.ph { position: sticky; top: 0; z-index: 40; background: rgba(13, 11, 9, 0.82); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(242, 234, 219, 0.08); color: #f2eadb; }
+:where(.ph) a { color: #cdc2b0; text-decoration: none; }
+:where(.ph) a:hover, :where(.ph) a[aria-current="page"] { color: #f2eadb; }
+.pfoot { background: #0d0b09; color: #9a8f7d; border-top: 1px solid rgba(242, 234, 219, 0.08); }
+:where(.pfoot) a { color: #f2eadb; text-decoration: none; }
+:where(.pfoot) p a { text-decoration: underline; }
+:where(.pfoot) a:hover { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb .luster, .forming .orb, .born .orb, .rise, .rise-2, .rise-3, dialog.sheet[open] { animation: none !important; }
+  .flip-in { transition: none; }
 }

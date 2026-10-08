@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
 const LIVING = "/e?type=experience&title=A+walk+through+Rule+90&by=Pearls&session=living-example&b1=h:Eight+cells+on+a+ring&b2=p:Start+here&b3=x:/map/eca/90/8/state/5&b4=choice:What+would+you+like+to+do%3F|Take+one+step>/x/map/eca/90/8/state/5/next|Flip+a+cell>/x/map/eca/90/8/state/5/flip/2&b5=research:purl&b6=prompt:Predict+the+next+state";
-const PAGES = ["/", "/world", "/clones", "/how", "/g/ttt", "/g/ttt/4~you/0~ai-a", "/clock", "/loom", "/garden", "/report", "/developers", "/live", "/live/map/eca/90/8/state/5", "/live/map/eca/30/16/state/256/trace/16", "/play", "/compare", LIVING, "/create", "/create/conversation", "/create/computation", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
+const PAGES = ["/", "/explore", "/play", "/mine", "/atlas", "/verbs", "/world", "/clones", "/how", "/g/ttt", "/g/ttt/4~you/0~ai-a", "/clock", "/loom", "/garden", "/report", "/developers", "/live", "/live/map/eca/90/8/state/5", "/live/map/eca/30/16/state/256/trace/16", "/compare", LIVING, "/create", "/create/conversation", "/create/computation", "/spaces", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
 
 test.describe("every page", () => {
   for (const p of PAGES) {
@@ -47,9 +47,9 @@ test("keyboard: skip link first, then reach the primary navigation", async ({ pa
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#main$/);
   if (!isMobile) {
-    await page.goto("/world"); // the clone home is immersive: navigation steps back there
+    await page.goto("/atlas");
     for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toHaveAttribute("href", /^\/(world|g\/ttt|create|garden)?$/);
+    await expect(page.locator(":focus")).toHaveAttribute("href", /^\/(explore|play|mine)?$/);
   }
 });
 
@@ -71,13 +71,14 @@ test("mobile: the topology is a linear semantic list, not a shrunk diagram", asy
   await expect(page.getByRole("list", { name: "Research topology as a list" }).locator(":scope > li")).toHaveCount(8);
 });
 
-test("mobile: navigation works without JavaScript (details/summary)", async ({ browser, isMobile }) => {
+test("mobile: navigation works without JavaScript", async ({ browser, isMobile }) => {
   test.skip(!isMobile, "mobile only");
   const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.goto("/");
-  await page.getByText("Menu").click();
-  await page.getByRole("navigation", { name: "Primary (mobile)" }).getByRole("link", { name: "Research" }).click();
+  await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Explore" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+  await page.getByRole("navigation", { name: "Downstairs" }).getByRole("link", { name: "Research" }).click();
   await expect(page).toHaveURL(/\/research$/);
   await ctx.close();
 });
@@ -88,7 +89,7 @@ test("without JavaScript: content, machine layer and substrate disclosures all w
   await page.goto("/how");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI can make a Pearl.");
   await expect(page.getByText("Copy this into your AI and see what it makes.")).toBeVisible();
-  await page.goto("/explore");
+  await page.goto("/atlas");
   const d = page.locator("details.substrate").first();
   await d.locator("summary").click();
   await expect(d.locator("pre")).toBeVisible();
@@ -100,14 +101,14 @@ test("without JavaScript: content, machine layer and substrate disclosures all w
 test("reduced motion: animations are effectively disabled", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();
-  await page.goto("/explore");
+  await page.goto("/atlas");
   const dur = await page.locator(".motion-reveal").first().evaluate((el) => getComputedStyle(el).animationDuration);
   expect(parseFloat(dur)).toBeLessThan(0.01);
   await ctx.close();
 });
 
 test("deep links resolve to their anchors", async ({ page }) => {
-  for (const [path, id] of [["/verify", "E-006"], ["/verify", "C-14"], ["/verify", "ingress"], ["/experiments", "X-ADDRESS"], ["/research/golden-surface", "model"], ["/explore", "golden"], ["/how", "first"], ["/", "for-ai"], ["/world", "make"], ["/world", "bring"], ["/capabilities", "hash.sha256"]]) {
+  for (const [path, id] of [["/verify", "E-006"], ["/verify", "C-14"], ["/verify", "ingress"], ["/experiments", "X-ADDRESS"], ["/research/golden-surface", "model"], ["/atlas", "golden"], ["/how", "first"], ["/", "h"], ["/world", "make"], ["/world", "bring"], ["/capabilities", "hash.sha256"]]) {
     await page.goto(`${path}#${id}`);
     await expect(page.locator(`[id="${id}"]`)).toBeInViewport();
   }
@@ -123,7 +124,7 @@ test("404: correct status and a useful page", async ({ page }) => {
 test("first interaction reveals the substrate layer, and it can be dismissed", async ({ page, isMobile }) => {
   test.skip(isMobile, "the trace strip is desktop-only; mobile uses the disclosures");
   await page.addInitScript(() => localStorage.setItem("pearls.mode", "explore")); // the trace is part of Explore mode
-  await page.goto("/explore");
+  await page.goto("/atlas");
   const trace = page.getByRole("complementary", { name: /Substrate trace/ });
   await expect(trace).toHaveCount(0);
   await page.mouse.wheel(0, 1800);
@@ -134,7 +135,7 @@ test("first interaction reveals the substrate layer, and it can be dismissed", a
 });
 
 test("address console: resolves and the browser recomputes the identical hash", async ({ page }) => {
-  await page.goto("/explore#address");
+  await page.goto("/atlas#address");
   await expect(page.getByText("✓ identical, recomputed in your browser")).toBeVisible();
   await page.getByRole("button", { name: "an orbit" }).click();
   await expect(page.getByText("tail", { exact: false }).first()).toBeVisible();
@@ -240,13 +241,11 @@ test("Simple | Explore: the same page shows the protocol only in Explore, and th
   await page.goto("/create/conversation");
   const details = page.locator(".explore-only").first();
   await expect(details).toBeHidden();
-  if (isMobile) { await page.getByText("Menu").click(); }
   await page.getByRole("radio", { name: "explore" }).filter({ visible: true }).first().click();
   await expect(page.locator("html")).toHaveAttribute("data-mode", "explore");
   await expect(page.getByText(/^id p_[0-9a-z]{16}/)).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-mode", "explore");
-  if (isMobile) { await page.getByText("Menu").click(); }
   await page.getByRole("radio", { name: "simple" }).filter({ visible: true }).first().click();
   await expect(page.locator("html")).toHaveAttribute("data-mode", "simple");
 });
@@ -421,7 +420,7 @@ test("Living Pearl: VERIFY, REMIX (original unchanged), COMPARE; shortcuts ignor
 });
 
 test("Play: the Seven Verbs walk IDLE → BUILT; the shared surface refuses credentials and offers only legal moves", async ({ page }) => {
-  await page.goto("/play");
+  await page.goto("/verbs");
   await page.getByRole("button", { name: /^START/ }).click();
   await page.getByRole("button", { name: /^SWITCH/ }).click();
   await expect(page.getByText(/the URL changed under the session/)).toBeVisible();
@@ -530,107 +529,37 @@ test("V6 machine surface: an AI can read the game, its legal moves and the subst
   expect(llms).toContain("If a person gave you a Pearl link (V6)");
 });
 
-// ------------------------------------------------------------------ CLONE YOUR AI
+// ------------------------------------------------------------------ PEARLS
 
-const RESPONSE = (token: string) => `/clone/${token}/r?v=1&confirm=yes&model=Claude&provider=Anthropic&name=Sunny&calls_user=Sam&context=We+planned+a+trip+to+Lisbon+and+Porto&m1=user:Plan+my+trip&m2=assistant:Lisbon+first&mem=Sam+gets+seasick&thread=Book+the+train&na=system+prompt`;
-async function begin(page: import("@playwright/test").Page) {
+test("Pearls without AI: make from your own words, play it, keep it, give it to an AI and bring the reply back", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => {});
   await page.goto("/");
-  await page.getByRole("button", { name: "Clone your AI" }).click();
-  await page.waitForURL(/\/clone\/c_[0-9a-z]{26}$/);
-  return page.url().split("/clone/")[1];
-}
-
-test("Clone: one action; the address waits; an AI's response arrives live in two browsers; refresh and a new context reconstruct it", async ({ page, browser, request }) => {
-  await page.goto("/");
-  await expect(page.getByRole("button")).toContainText(["Clone your AI"]);
-  const token = await begin(page);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your Pearl is waiting for its other voice.");
-  await expect(page.getByText(`/clone/${token}`).first()).toBeVisible();
-  await page.reload(); // refreshing while waiting keeps waiting: the server holds the state
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your Pearl is waiting for its other voice.");
-  // a second browser, another device: the same address, no shared memory
-  const other = await (await browser.newContext()).newPage();
-  await other.goto(`/clone/${token}`);
-  await expect(other.getByRole("heading", { level: 1 })).toHaveText("Your Pearl is waiting for its other voice.");
-  // the AI answers from elsewhere (its own fetcher)
-  const r = await request.get(RESPONSE(token));
-  expect(await r.text()).toContain("VERIFIED");
-  for (const p of [page, other]) await expect(p.getByRole("heading", { name: "Sunny, cloned." })).toBeVisible({ timeout: 15_000 });
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Sunny, cloned." })).toBeVisible();
-  await page.getByText(/What was cloned/).click();
-  await expect(page.getByText("Captured · received through the protocol")).toBeVisible();
-  await expect(page.getByText("the model's system prompt or hidden instructions")).toBeVisible();
-  // the URL is history: each event has its own address
-  await page.getByText(/History · \d+ events/).click();
-  await page.getByRole("link", { name: /#\d+ VERIFIED/ }).click();
-  await expect(page).toHaveURL(new RegExp(`/clone/${token}/\\d+$`));
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("alive");
-  const v = await (await request.get(`/api/v1/clone/${token}/verify`)).json();
-  expect(v.chain_intact).toBe(true);
-});
-
-test("Clone: a person brings the AI's reply back; an incomplete reply names exactly what is missing", async ({ page }) => {
-  const token = await begin(page);
-  await page.getByLabel("Bring it back").fill(`Sure! I can't open links, so here it is:\n\nhttps://aanebed.vercel.app/clone/${token}/r?v=1&model=GPT\n\nBring this back to Pearls.`);
+  await expect(page.getByText("Made from your own words", { exact: true })).toBeVisible();
+  await page.getByLabel(/Start with an idea/).fill("Weekend bread plan\n\n1. Feed the starter on Friday\n2. Mix the dough Saturday morning\n3. Bake on Sunday");
+  await page.getByRole("button", { name: "Make a Pearl" }).click();
+  await page.waitForURL(/\/pearl\/[A-Za-z0-9_-]+\?born=new$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Weekend bread plan");
+  await expect(page.getByText("Born from your idea", { exact: true })).toBeVisible();
+  await page.getByRole("checkbox").first().check();
+  await expect(page.getByText("1 of 3 done")).toBeVisible();
+  const url = page.url().split("?")[0];
+  await page.getByRole("button", { name: /Give/ }).click();
+  const reply = 'Sure.\n```pearl\n{"title":"Weekend bread, with timings","kind":"plan","essence":"Times added.","blocks":[{"t":"steps","heading":"","items":["Friday 8pm: feed the starter","Saturday 9am: mix","Sunday 10am: bake at 240C"]}],"by":"Some AI","note":"Added times"}\n```';
+  await page.getByLabel(/Paste your AI/).fill(reply);
   await page.getByRole("button", { name: "Bring it back" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "incomplete" }).first()).toBeVisible();
-  await expect(page.getByText(/confirm \(a short statement/).first()).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(/cloned/);
-  await page.getByLabel("Bring it back").fill("Here you go:\n```json\n" + JSON.stringify({ protocol: "pearl-clone/1", token, confirm: "Cloning this session for you.", source: { model: "Gemini" }, identity: { name: "Gem" }, context: "We wrote a poem about the sea, three stanzas." }) + "\n```");
-  await page.getByRole("button", { name: "Bring it back" }).click();
-  await expect(page.getByRole("heading", { name: "Gem, cloned." })).toBeVisible({ timeout: 15_000 });
-});
-
-test("Clone: continue and clone again make separate branches; the parent is unchanged; only the owner can delete", async ({ page, browser, request }) => {
-  const token = await begin(page);
-  await request.get(RESPONSE(token));
-  await expect(page.getByRole("heading", { name: "Sunny, cloned." })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.waitForURL((u) => /\/clone\/c_/.test(u.pathname) && !u.pathname.includes(token));
-  const child = page.url().split("/clone/")[1];
-  await expect(page.getByText(`← from ${token} (continuation)`)).toBeVisible();
-  await expect(page.locator("pre").filter({ hasText: `/clone/${token}/clone.txt` })).toBeVisible();
-  await page.goto(`/clone/${token}`);
-  await page.getByRole("button", { name: "Clone again" }).click();
-  await page.waitForURL((u) => /\/clone\/c_/.test(u.pathname) && !u.pathname.includes(token) && !u.pathname.includes(child));
-  const parent = await (await request.get(`/api/v1/clone/${token}`)).json();
-  expect(parent.children.map((c: { kind: string }) => c.kind)).toEqual(["continuation", "fork"]);
-  expect(parent.clone.declared.identity.name).toBe("Sunny");
-  // another browser has no owner key: no delete
-  const stranger = await (await browser.newContext()).newPage();
-  await stranger.goto(`/clone/${token}`);
-  await expect(stranger.getByRole("button", { name: "Delete this clone" })).toHaveCount(0);
-  expect((await request.delete(`/api/v1/clone/${token}`, { data: { owner_key: "k_guess" } })).status()).toBe(403);
-  // the owner can
-  await page.goto(`/clone/${token}`);
-  page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Delete this clone" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This Pearl was deleted.");
-  expect((await (await request.get(`/api/v1/clone/${token}`)).json()).status).toBe("DELETED");
-});
-
-test("Clone: without EventSource the page still updates (polling); reduced motion keeps the same states", async ({ browser, request }) => {
-  const ctx = await browser.newContext({ reducedMotion: "reduce" });
-  await ctx.addInitScript(() => { (window as unknown as { EventSource?: unknown }).EventSource = undefined; });
-  const page = await ctx.newPage();
-  const token = await begin(page);
-  await expect(page.getByText("live: checking every 3 s")).toBeVisible();
-  await request.get(RESPONSE(token));
-  await expect(page.getByRole("heading", { name: "Sunny, cloned." })).toBeVisible({ timeout: 15_000 });
-  await ctx.close();
-});
-
-test("Clone: waiting and living pages pass axe; unknown addresses are kind", async ({ page, request }) => {
-  const token = await begin(page);
-  await page.waitForTimeout(800);
-  let r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-  expect(r.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
-  await request.get(RESPONSE(token));
-  await expect(page.getByRole("heading", { name: "Sunny, cloned." })).toBeVisible({ timeout: 15_000 });
-  await page.waitForTimeout(800);
-  r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-  expect(r.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
-  await page.goto("/clone/c_" + "0".repeat(26));
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("No Pearl lives at this address.");
+  await page.waitForURL(/born=returned$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Weekend bread, with timings");
+  await expect(page.getByText("Continued by another AI (Some AI, as it says)", { exact: true })).toBeVisible();
+  await page.goto("/mine");
+  await expect(page.getByText("Weekend bread plan")).toBeVisible();
+  await expect(page.getByText("Weekend bread, with timings")).toBeVisible();
+  // the link alone reopens it, in a fresh browser
+  const fresh = await page.context().browser()!.newContext();
+  const p2 = await fresh.newPage();
+  await p2.goto(url);
+  await expect(p2.getByRole("heading", { level: 1 })).toHaveText("Weekend bread plan");
+  const text = await (await p2.request.get(url + "/text")).text();
+  expect(text).toContain("Feed the starter on Friday");
+  await fresh.close();
+  expect((await page.request.get(url.slice(0, -10))).status()).toBe(200); // a cut-off link is a kind page, not an error
 });

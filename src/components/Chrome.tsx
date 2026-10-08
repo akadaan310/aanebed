@@ -1,66 +1,46 @@
 import Link from "next/link";
-import { SITE, MACHINE_ENTRYPOINTS } from "@/content/site";
+import { Nav } from "@/components/pearls/Nav";
+import { SITE } from "@/content/site";
 import { ModeSwitch } from "@/components/ModeSwitch";
-import { SoundToggle } from "@/components/v6/Actions";
-import { PearlGlyphClient } from "@/components/pearl/PearlGlyphClient";
-import { HOST } from "@/config/origin";
 
+/** The product's four places. Everything else is downstairs, in the footer. */
 export const PRIMARY_NAV = [
-  { href: "/", label: "Clone" },
-  { href: "/world", label: "Discover" },
-  { href: "/g/ttt", label: "Play" },
-  { href: "/create", label: "Make" },
-  { href: "/garden", label: "Your Pearls" },
+  { href: "/", label: "Make" },
+  { href: "/explore", label: "Explore" },
+  { href: "/play", label: "Play" },
+  { href: "/mine", label: "My Pearls" },
 ] as const;
 
-/** Downstairs: the research and the machinery, one tap away, never in the way. */
+/** Downstairs: the research and every earlier version, kept as they were. */
 export const SECONDARY_NAV = [
-  { href: "/workspace", label: "Library" },
-  { href: "/spaces", label: "Spaces" },
-  { href: "/how", label: "How it works" },
   { href: "/research", label: "Research" },
+  { href: "/how", label: "How it works" },
+  { href: "/atlas", label: "The system underneath" },
+  { href: "/world", label: "Earlier: the world (V6)" },
+  { href: "/verbs", label: "Earlier: the Seven Verbs" },
   { href: "/developers", label: "Developers" },
   { href: "/about", label: "About" },
 ] as const;
 
+function Mark() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+      <defs><radialGradient id="pm" cx="38%" cy="32%" r="75%"><stop offset="0" stopColor="#fffdf8" /><stop offset="0.55" stopColor="#e6d8bf" /><stop offset="1" stopColor="#7c6a50" /></radialGradient></defs>
+      <circle cx="12" cy="12" r="10" fill="url(#pm)" />
+      <ellipse cx="8.6" cy="7.6" rx="3.2" ry="2" fill="#fff" opacity="0.8" transform="rotate(-28 8.6 7.6)" />
+    </svg>
+  );
+}
+
 export function Header() {
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-rule bg-ground/90 backdrop-blur-md">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-ground">
-        Skip to content
-      </a>
-      <div className="wrap flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5 no-underline" aria-label="Pearls, home">
-          <PearlGlyphClient size={24} />
-          <span className="font-serif text-[1.35rem] tracking-tight">Pearls</span>
+    <header className="ph no-print">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-[#f2eadb] focus:px-4 focus:py-2 focus:text-[#1e1a15]">Skip to content</a>
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
+        <Link href="/" className="flex items-center gap-2 !text-[#f2eadb]" aria-label="Pearls, home">
+          <Mark /><span className="font-serif text-[1.3rem] tracking-tight">Pearls</span>
         </Link>
-        <nav aria-label="Primary" className="site-nav hidden lg:block">
-          <ul className="flex items-center gap-1 text-[0.95rem]">
-            {PRIMARY_NAV.map((n) => (
-              <li key={n.href}><Link href={n.href} className="rounded-full px-3.5 py-2 text-ink-2 no-underline hover:bg-raised hover:text-ink">{n.label}</Link></li>
-            ))}
-          </ul>
-        </nav>
-        <div className="flex items-center gap-3">
-          <span className="site-cta hidden sm:block"><SoundToggle /></span>
-          <Link href="/" className="site-cta btn-glow hidden !min-h-10 !py-2 text-[0.9rem] md:inline-flex">Clone your AI</Link>
-          <details className="relative lg:hidden">
-            <summary className="btn-soft !min-h-10 !py-2" aria-label="Menu">Menu</summary>
-            <nav aria-label="Primary (mobile)" className="card absolute right-0 top-12 w-72 p-2 shadow-xl">
-              <ul className="flex flex-col">
-                {PRIMARY_NAV.map((n) => (
-                  <li key={n.href}><Link href={n.href} className="block rounded-lg px-3 py-3 text-[1.02rem] no-underline hover:bg-raised">{n.label}</Link></li>
-                ))}
-              </ul>
-              <ul className="mt-1 grid grid-cols-2 border-t border-rule pt-1 text-[0.9rem] text-ink-2">
-                {SECONDARY_NAV.map((n) => (
-                  <li key={n.href}><Link href={n.href} className="block rounded-lg px-3 py-2.5 no-underline hover:bg-raised hover:text-ink">{n.label}</Link></li>
-                ))}
-              </ul>
-              <div className="flex items-center justify-between border-t border-rule px-3 py-3 sm:hidden"><ModeSwitch /><SoundToggle /></div>
-            </nav>
-          </details>
-        </div>
+        <Nav items={PRIMARY_NAV} />
       </div>
     </header>
   );
@@ -68,34 +48,23 @@ export function Header() {
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-rule pb-16 pt-12 text-[0.9rem] text-ink-2">
-      <div className="wrap grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="pfoot no-print text-[0.88rem]">
+      <div className="mx-auto grid max-w-5xl gap-10 px-4 py-14 sm:grid-cols-[1.3fr_1fr_1fr]">
         <div>
-          <p className="flex items-center gap-2 font-serif text-xl text-ink"><PearlGlyphClient size={20} /> Pearls</p>
-          <p className="measure mt-2">A place where people and AIs make things that have addresses. Give them to your AI; bring them back. Made by Abed Kadaan.</p>
-          <p className="mt-4 font-mono text-[0.75rem] text-ink-3">{HOST} · v{SITE.version} · <a href={SITE.source}>source</a></p>
-          <div className="mt-4"><ModeSwitch /></div>
+          <p className="flex items-center gap-2 font-serif text-[1.25rem] text-[#f2eadb]"><Mark /> Pearls</p>
+          <p className="mt-2 max-w-[38ch] leading-relaxed">Make something worth keeping. Ideas become Pearls; Pearls can go places. Made by Abed Kadaan.</p>
         </div>
-        <nav aria-label="Product">
-          <p className="mb-3 font-semibold text-ink">Pearls</p>
-          <ul className="space-y-1.5">
-            {[["Clone your AI", "/"], ["Your clones", "/clones"], ["Discover", "/world"], ["Play", "/g/ttt"], ["Make", "/create"], ["Your Pearls", "/garden"], ["Library", "/workspace"], ["Spaces", "/spaces"], ["Bring it back", "/world#bring"], ["Something wrong?", "/report"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
-          </ul>
+        <nav aria-label="Downstairs">
+          <p className="mb-3 text-[0.72rem] uppercase tracking-[0.16em]">Downstairs</p>
+          <ul className="space-y-1.5">{SECONDARY_NAV.map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}</ul>
         </nav>
-        <nav aria-label="Research">
-          <p className="mb-3 font-semibold text-ink">Downstairs</p>
-          <ul className="space-y-1.5">
-            {[["How it works", "/how"], ["Research", "/research"], ["Substrate", "/research/substrate"], ["PURL", "/research/purl"], ["AI-CI", "/research/ai-ci"], ["Live addresses", "/live"], ["Seven Verbs", "/play"], ["AI Lab", "/ai"], ["Verify", "/verify"], ["Institutions & press", "/press"], ["About", "/about"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
-          </ul>
-        </nav>
-        <nav aria-label="Machine interface">
-          <p className="mb-3 font-semibold text-ink">For AI</p>
+        <nav aria-label="For AI">
+          <p className="mb-3 text-[0.72rem] uppercase tracking-[0.16em]">For AI</p>
           <ul className="space-y-1.5 font-mono text-[0.78rem]">
-            <li><Link href="/developers" className="font-sans text-[0.9rem] no-underline hover:text-ink">Developers</Link></li>
-            {MACHINE_ENTRYPOINTS.filter((e) => ["/llms.txt", "/ai.txt", "/.well-known/ai", "/research.json", "/capabilities.json", "/e.json"].includes(e.path)).map((e) => (
-              <li key={e.path}><a href={e.path} className="no-underline hover:text-ink">{e.path}</a></li>
-            ))}
+            {["/llms.txt", "/.well-known/ai", "/capabilities.json"].map((p) => <li key={p}><a href={p}>{p}</a></li>)}
           </ul>
+          <div className="mt-4"><ModeSwitch /></div>
+          <p className="mt-4 font-mono text-[0.72rem]">v{SITE.version} · <a href={SITE.source} className="underline">source</a></p>
         </nav>
       </div>
     </footer>

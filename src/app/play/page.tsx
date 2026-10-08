@@ -1,39 +1,42 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SevenVerbs, SharedSurface } from "@/components/living/PlayApp";
+import { Row } from "@/components/pearls/Row";
 import { SubstrateLayer } from "@/components/Substrate";
+import { encode } from "@/lib/pearls/codec";
+import { EXAMPLES, PLAYABLE } from "@/content/pearls";
 
-export const metadata: Metadata = {
-  title: "Play",
-  description: "Discovery modes: the Seven Verbs (an experimental URL interaction grammar from SEURL and MUSA) and a shared surface in Golden Surface's vocabulary. Simulated in your browser.",
-  alternates: { canonical: "/play" },
-};
+export const metadata: Metadata = { title: "Play", description: "Pearls you can play: games, quizzes and flashcards, and a few small worlds that live in a link.", alternates: { canonical: "/play" } };
 
-export default function Play() {
+const WORLDS = [
+  { href: "/g/ttt", title: "Noughts and crosses, by link", line: "Every move is a new link. Send your move to a friend — or to an AI — and they answer with theirs." },
+  { href: "/x/map/eca/90/8/state/5", title: "A universe in an address", line: "A tiny cellular universe. Change the rule in the link and a different world unfolds, the same for everyone who opens it." },
+];
+
+export default async function Play() {
+  const games = await Promise.all(EXAMPLES.filter((p) => PLAYABLE.includes(p.title)).map(async (p) => ({ p, code: await encode(p) })));
   return (
-    <>
-      <SubstrateLayer data={{ page: "/play", modes: ["seven-verbs", "shared-surface"], sources: ["MUSA luna-agent/protocols/url-machine.md", "seurl/README.md", "golden-surface docs/SYNC.md (via src/lib/goldenSync.ts)"], status: { seven_verbs: "experimental interaction grammar; C-12 remains HYPOTHESIS", shared_surface: "browser-side simulation" } }} />
-      <header className="paper-glow border-b border-rule">
-        <div className="wrap act !pb-12">
-          <p className="eyebrow mb-5">Play · discovery modes</p>
-          <h1 className="keynote max-w-[15ch]">We haven&apos;t moved till you came. What&apos;s next?</h1>
-          <p className="mt-6 max-w-[46ch] text-[1.2rem] text-ink-2">Two small worlds where the URL is the computer. Each move shows the state you were in, the legal move you made, what happened, and the address you reached.</p>
-        </div>
-      </header>
-      <section aria-labelledby="verbs-h" className="wrap py-14">
-        <p className="eyebrow mb-2">SEURL · the Seven Verbs</p>
-        <h2 id="verbs-h" className="title max-w-[24ch]">START, SWITCH, WRITE, COMMIT, BUILD, TALK, PERTURB.</h2>
-        <p className="measure mt-4 text-ink-2">The verbs and their transitions are written in MUSA&apos;s <span className="font-mono text-[0.85rem]">url-machine.md</span>. What a move <em>is</em> mechanically is left open in the SEURL repository, so this is this site&apos;s interpretation, built only from registered operations: a session&apos;s address is a computational address, WRITE drafts typed Pearl blocks (text, never code), BUILD runs the real Pearl parser. It is an experimental interaction grammar, not a programming language. Whether an AI given only the SEURL address will begin programming URLs is still a <Link href="/research/seurl">hypothesis (C-12)</Link>.</p>
-        <div className="mt-8"><SevenVerbs /></div>
-      </section>
-      <section aria-labelledby="surface-h" className="rule-t">
-        <div className="wrap py-14">
-          <p className="eyebrow mb-2">Golden Surface · a shared surface</p>
-          <h2 id="surface-h" className="title max-w-[24ch]">Participant → surface → operation → authority → state → convergence.</h2>
-          <p className="measure mt-4 text-ink-2">Three parties share one browser. Every tab has an owner, and an operation outside a participant&apos;s authority is not offered; if attempted, it is refused and logged. The pilot&apos;s phone and the server twin converge under Golden Surface&apos;s declared sync rules (the <Link href="/research/golden-surface#model">same model as the research page</Link>). This is a simulation in your browser: no page is fetched, and the pages are this site&apos;s own computational addresses.</p>
-          <div className="mt-8"><SharedSurface /></div>
-        </div>
-      </section>
-    </>
+    <div className="room px-4 pb-24 pt-14">
+      <SubstrateLayer data={{ page: "/play", worlds: WORLDS.map((w) => w.href) }} />
+      <div className="mx-auto max-w-3xl">
+        <h1 className="display max-w-[12ch]">Play</h1>
+        <p className="mt-4 max-w-[48ch] text-[1.1rem] text-[var(--iv2)]">Some Pearls are meant to be played. Ask for a game or a quiz when you make one, and yours will be too.</p>
+        <section className="mt-14" aria-labelledby="g-h">
+          <h2 id="g-h" className="label">Pearls to play</h2>
+          <div className="mt-3 divide-y divide-[var(--line)]">{games.map(({ p, code }) => <Row key={code} p={p} code={code} />)}</div>
+        </section>
+        <section className="mt-14" aria-labelledby="w-h">
+          <h2 id="w-h" className="label">Small worlds in a link</h2>
+          <ul className="mt-3 divide-y divide-[var(--line)]">
+            {WORLDS.map((w) => (
+              <li key={w.href}><Link href={w.href} className="block rounded-3xl px-4 py-5 no-underline transition hover:bg-[rgba(242,234,219,0.04)]">
+                <span className="block font-serif text-[1.3rem]">{w.title} <span aria-hidden className="text-[var(--iv3)]">→</span></span>
+                <span className="mt-1 block text-[0.92rem] text-[var(--iv2)]">{w.line}</span>
+              </Link></li>
+            ))}
+          </ul>
+        </section>
+        <p className="mt-16 text-center"><Link href="/" className="pbtn">Make a game of your own</Link></p>
+      </div>
+    </div>
   );
 }
