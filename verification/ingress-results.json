@@ -6,7 +6,7 @@
     "date": "2026-10-08",
     "given": "https://aanebed.vercel.app",
     "base_under_test": "local production build (next start), standing in for https://aanebed.vercel.app",
-    "requests": 66
+    "requests": 69
   },
   "baseline": {
     "evidence": "E-009",
@@ -17,7 +17,7 @@
       "n": 1,
       "question": "What can it discover?",
       "pass": true,
-      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 45 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 42 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
+      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 50 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 45 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
       "evidence": [
         "/",
         "/robots.txt",
@@ -28,7 +28,7 @@
       "n": 2,
       "question": "Can it find the machine-readable interface?",
       "pass": true,
-      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 18 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /capabilities.json, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
+      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 22 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /live/{address}, /api/v1/living?u={Pearl link | address}, /compare, /play, /capabilities.json, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
       "evidence": [
         "/.well-known/ai",
         "/research.json"
@@ -59,7 +59,7 @@
       "n": 5,
       "question": "Can it distinguish claims from evidence?",
       "pass": true,
-      "answer": "22 claims, each with one status from a 7-status taxonomy (demonstrated 12, proposed 3, open 7). Every demonstrated claim cites at least one of 15 evidence records; dangling references: 0. Evidence records state their command, commit and caveat separately from the claim.",
+      "answer": "24 claims, each with one status from a 7-status taxonomy (demonstrated 13, proposed 4, open 7). Every demonstrated claim cites at least one of 16 evidence records; dangling references: 0. Evidence records state their command, commit and caveat separately from the claim.",
       "evidence": [
         "/research.json#/claims",
         "/research.json#/evidence",
@@ -99,7 +99,7 @@
       "n": 9,
       "question": "Can it produce a useful research summary without hidden context?",
       "pass": true,
-      "answer": "Abed Kadaan (https://aanebed.vercel.app) is a public research surface, not a portfolio. Abed Kadaan builds computational surfaces where humans, software, URLs, and machine intelligence can participate in the same system. It proposes AI-CI (Artificial Intelligence → Actual Intelligence; Artificial Intelligence–Computer Interaction), described as its author's terminology rather than an established field. Its research topology has 8 nodes (AI-CI, Continuity, PURL, Substrate, Golden Surface, Netscape Surface, SEURL, MUSA) linked by 14 cited relations to 8 public repositories. Of 22 claims, 12 are demonstrated with evidence (for example, E-001 PURL test suite re-run; E-002 PURL experiment exp-0001 reproduced from raw data; E-003 ACSP protocol harness and unit tests re-run), 3 are proposed and 7 are open, including whether production AI systems will use this machine layer at all. It offers an AI the chance to compose a custom experience for its person as a URL, which the person can keep as a continuity brain that other AI sessions continue. Agents are permitted GET requests only; its computational experiment resolved /x/map/eca/90/8/state/5/next to x = 136, verified by hash. It states its own limits: This website cannot cause an external AI to do anything. It can only make its structure available.",
+      "answer": "Abed Kadaan (https://aanebed.vercel.app) is a public research surface, not a portfolio. Abed Kadaan builds computational surfaces where humans, software, URLs, and machine intelligence can participate in the same system. It proposes AI-CI (Artificial Intelligence → Actual Intelligence; Artificial Intelligence–Computer Interaction), described as its author's terminology rather than an established field. Its research topology has 8 nodes (AI-CI, Continuity, PURL, Substrate, Golden Surface, Netscape Surface, SEURL, MUSA) linked by 14 cited relations to 8 public repositories. Of 24 claims, 13 are demonstrated with evidence (for example, E-001 PURL test suite re-run; E-002 PURL experiment exp-0001 reproduced from raw data; E-003 ACSP protocol harness and unit tests re-run), 4 are proposed and 7 are open, including whether production AI systems will use this machine layer at all. It offers an AI the chance to compose a custom experience for its person as a URL, which the person can keep as a continuity brain that other AI sessions continue. Agents are permitted GET requests only; its computational experiment resolved /x/map/eca/90/8/state/5/next to x = 136, verified by hash. It states its own limits: This website cannot cause an external AI to do anything. It can only make its structure available.",
       "evidence": [
         "/",
         "/robots.txt",
@@ -231,19 +231,19 @@
       "id": "sitemap-all-200",
       "group": "machine",
       "pass": true,
-      "detail": "42 URLs"
+      "detail": "45 URLs"
     },
     {
       "id": "canonical-urls",
       "group": "machine",
       "pass": true,
-      "detail": "33/33 HTML pages"
+      "detail": "36/36 HTML pages"
     },
     {
       "id": "every-page-has-machine-layer",
       "group": "machine",
       "pass": true,
-      "detail": "33/33 HTML pages embed #substrate-layer"
+      "detail": "36/36 HTML pages embed #substrate-layer"
     },
     {
       "id": "layers-match-manifest",
@@ -326,6 +326,7 @@
       "/broadcast",
       "/capabilities",
       "/capabilities.json",
+      "/compare",
       "/compose",
       "/continue",
       "/create",
@@ -340,9 +341,13 @@
       "/e.json",
       "/experiments",
       "/explore",
+      "/live",
+      "/live/map/eca/90/8/state/5",
       "/llms.txt",
       "/manifest.json",
       "/p/p_1e55acfe5433k2b7.VZFNaxwxDIb_jXNQtnS2n3HxXraEFkopbKFn2dbGYj2yseVO5t-XmfSSm4TeR4JHulZyoYiyDNbVKGsm92u0lu9B-CkpFCHjV3fOOCKZTr1zERf29tBxPkzmWpq74Gz85JDtZYisxh9dGjOK3QfvnHC42TNWRRY4l3lmdUtChT0OAXPucMEZlkSyFz1x7YAKx23DeycDJZDdM42VOtwppTsoAnW0Wjq9sPQcWCl-AaG_1CCU1igosBr_wWV6tpoIYsOFmuNI2GEhqNhuFOFaGmRUasZ_dDPN9g-B4EwRNiigHmoqWgBrhd3Sdn0bXbl1fTFm_CcXKfDmyf7AISFtqcfGEVfjPztNjTDaRxbuaaeL-IItsjxBKHU1_sFh0I3_2vCqsBGvUokwZhbqxk9vXbLfKOdyD6_9Gj9NrtrfiTtwh932dk3oWeH_I6GnMnKEm5QF0JehMPob46eju-ay2O-R8PQTZzqdS11Pl8T1Hw",
+      "/p/p_azd4h57m6kk8w4gh.HY7BasMwEAW_Jro8sNJAaRPQpcG3UkJIode1vFgCWRLaVYn_vtTXOcyMbpWdL2vtShpLNho1sbv3xDgfcbieDh9vIFSmlrCVDk8Z2ls20-Zu_1SMsEgs2YWysple3PNiV6qWPdnz0b5bUVK2r2Y6uXoZ4xIUnlMSlAxCi3kZcGssgq_x5wHKMzQwaJ53uFDMApv5qQMepfsA2gXQgspNe5sQdcD4y23DXttXG5MPiALC9_1z-AM",
+      "/play",
       "/press",
       "/prompts",
       "/protocol",

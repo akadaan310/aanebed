@@ -26,6 +26,8 @@ export interface Pearl {
   by: string | null;
   for: string | null;
   session: string | null;
+  /** parent Pearl id, only on forks and remixes. Absent (not null) otherwise, so v1 ids never change. */
+  from?: string;
   blocks: Block[];
 }
 
@@ -57,7 +59,9 @@ export function inferType(doc: Experience): PearlTypeName {
 }
 
 export function toPearl(doc: Experience): Pearl {
-  return { format: PEARL_FORMAT, type: inferType(doc), title: doc.title, by: doc.by, for: doc.for, session: doc.session, blocks: doc.blocks };
+  const p: Pearl = { format: PEARL_FORMAT, type: inferType(doc), title: doc.title, by: doc.by, for: doc.for, session: doc.session, blocks: doc.blocks };
+  if (doc.from) p.from = doc.from;
+  return p;
 }
 
 export const canonicalPearl = (p: Pearl) => canonical(p as unknown as Json);

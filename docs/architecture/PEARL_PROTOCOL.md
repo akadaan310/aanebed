@@ -92,3 +92,20 @@ Engines: only `javascript` is active. `julia` is listed as **not available**; a 
 ## Experiences
 
 The Create catalogue (`src/content/experiences.ts`, see `docs/product/PEARL_EXPERIENCES.md`) is a set of forms over this grammar. Each form re-parses its output with the same parser `/e` uses on every keystroke; a unit test builds every example and requires zero errors and zero warnings.
+
+## v2 additions (Pearls v2, the living surface)
+
+Backward compatible: every v1 Pearl renders unchanged and keeps its id. A test pins the owner's Claude Pearl at `p_rg86c59j7jmqp0w1`.
+
+- **`from=`** (optional): the parent Pearl id, set by FORK and REMIX. It is validated against the id pattern; an invalid value is ignored with a warning. It is part of the canonical form **only when present**, so ids of Pearls without it are unchanged. It is lineage as asserted, not authorship.
+- **`choice:` block:** `choice:Question|Label>target|Label>target` (up to 6 options). Every target must be on this site (`/e`, `/p`, `/x`, `/live`, `/c`). A `|` inside an unencoded `/e` target is re-joined to that target. Choosing never changes the Pearl; each option is a link to another addressed object.
+- **Empty experiences:** a title with no blocks is valid but warns that there is nothing to experience yet.
+- **Living record (`living/1`):** `livingPearl()` and `livingAddress()` in `src/lib/living/` build identity, type, state, affordances (only legal ones; address-producing ones carry the next address), history, parent, related objects, evidence rows (computed / checked / recorded / asserted / external / cannot be established) and a generated explanation. The same record is in `/e.json` (`living`), at `/api/v1/living`, and in each page's substrate layer.
+- **Commands:** `src/lib/living/commands.ts` is the single table of verbs, keys and the capability each uses. It is published in `/capabilities.json` under `commands`.
+- **New capabilities:** `pearl.fork`, `pearl.diff`, `living.describe`. All are pure GETs.
+- **New routes:**
+  - `/live/{address}`: the browser URL is the computational address;
+  - `/compare`;
+  - `/play`: the Seven Verbs and the shared surface, both simulated.
+
+See `docs/architecture/PEARLS_V2.md` for the design.

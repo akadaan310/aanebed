@@ -4,6 +4,7 @@ import { toPearl, pearlDigest, idFromDigest, TYPE_INFO } from "@/lib/pearl/model
 import { pearlUrl } from "@/lib/pearl/serialize";
 import { encodePortable } from "@/lib/pearl/portable";
 import { ORIGIN } from "@/config/origin";
+import { livingPearl } from "@/lib/living/pearl";
 
 /**
  * GET /e.json?…: what a Pearl link encodes, as JSON. A composer can open this
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
   const blockKeys = received.filter(([k]) => /^(b\d*|block|s)$/.test(k)).length;
   const hints: string[] = [];
   if (blockKeys === 1 && q.has("b") && !q.has("s")) hints.push("Only one block arrived. If you wrote several b= blocks, your fetcher may have merged repeated keys: use numbered blocks b1=, b2=, b3=…");
-  if ([...q.keys()].some((k) => !/^(title|t|by|session|for|type|b\d*|block|s|format)$/.test(k))) hints.push("Unknown parameters arrived. A bare & or # inside text splits or cuts the link: encode & as %26 and # as %23.");
+  if ([...q.keys()].some((k) => !/^(title|t|by|session|for|type|from|b\d*|block|s|format)$/.test(k))) hints.push("Unknown parameters arrived. A bare & or # inside text splits or cuts the link: encode & as %26 and # as %23.");
   const body: Record<string, unknown> = { grammar: GRAMMAR_VERSION, valid: r.errors.length === 0, errors: r.errors, warnings: r.warnings, hints, received, stored: false };
   if (!r.errors.length) {
     const pearl = toPearl(r.doc);
@@ -32,6 +33,7 @@ export async function GET(req: Request) {
       pearl: { id: idFromDigest(digest), digest: "sha256:" + digest, type: pearl.type, support: TYPE_INFO[pearl.type].support, does: TYPE_INFO[pearl.type].does, blocks: pearl.blocks.length },
       links: { view: pearlUrl(pearl), portable: portable.url, as_received: `${ORIGIN}/e?${raw}` },
       document: r.doc,
+      living: livingPearl(pearl, { id: idFromDigest(digest), digest, link: portable.url }),
     });
   } else body.document = r.doc;
   return new Response(JSON.stringify(body, null, 1), {

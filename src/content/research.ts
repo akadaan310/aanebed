@@ -382,6 +382,8 @@ export const CLAIMS: Claim[] = [
   { id: "C-21", node: "ai-ci", statement: "A Pearl carries hidden model state, or proves who composed it.", status: "OPEN", evidence: [] },
   { id: "C-18", node: "ai-ci", statement: "Production AI assistants given only the plain URL will, unprompted, take stock of the conversation, compose an experience URL and continue a brain in another session.", status: "OPEN", evidence: ["E-012"] },
   { id: "C-22", node: "ai-ci", statement: "Pearls kept on this site are available on the person's other devices.", status: "OPEN", evidence: [] },
+  { id: "C-23", node: "purl", statement: "A computational address can expose only its legal next moves, each as another valid address, so that pressing a command in a browser is navigating a programmable state space (Pearls v2, /live).", status: "TESTED", evidence: ["E-016"] },
+  { id: "C-24", node: "ai-ci", statement: "A first-time visitor discovers within about 90 seconds that the object changed because its address changed.", status: "HYPOTHESIS", evidence: [] },
   { id: "C-16", node: "musa", statement: "The theoretical claims in MUSA's strata documents are established results.", status: "OPEN", evidence: [] },
 ];
 

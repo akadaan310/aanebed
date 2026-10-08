@@ -79,7 +79,8 @@
               "prompt",
               "claim",
               "pearl",
-              "c"
+              "c",
+              "choice"
             ]
           }
         }
@@ -93,6 +94,11 @@
     "digest": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^p_[0-9abcdefghjkmnpqrstvwxyz]{16}$",
+      "description": "parent Pearl id, present only on forks and remixes (lineage as asserted; not authorship). Included in the canonical form only when present."
     }
   }
 }

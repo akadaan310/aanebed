@@ -40,7 +40,10 @@ function Computation({ address }: { address: string }) {
             <p className="mt-3 break-all text-ink-3">value_sha256 {r.identity.value_sha256}</p>
           </div>
         </div>
-        <figcaption className="mt-4 text-[0.8rem] text-ink-3">The composer wrote the address; this site computed the result. Anyone can recompute it: the same value comes from substrateIO&apos;s reference resolver.</figcaption>
+        <figcaption className="mt-4 flex flex-wrap items-baseline justify-between gap-3 text-[0.8rem] text-ink-3">
+          <span>The composer wrote the address; this site computed the result. Anyone can recompute it: the same value comes from substrateIO&apos;s reference resolver.</span>
+          <a href={`/live${r.address}`} className="cmd !min-h-9 !text-[0.75rem]">TURN IT · NEXT, PERTURB, TRACE →</a>
+        </figcaption>
       </figure>
     );
   } catch (e) {
@@ -112,11 +115,21 @@ export function BlockView({ b, i }: { b: Block; i: number }) {
           <span className="text-ink-2">{b.text} <span className="font-mono text-[0.68rem] text-ink-3">status asserted by the composer</span></span>
         </p>
       );
+    case "choice":
+      return (
+        <figure className="my-8 rounded-2xl border border-gold/50 bg-gold-deep/30 p-5">
+          <figcaption className="font-serif text-xl">{b.prompt}</figcaption>
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label={b.prompt}>
+            {b.options.map((o, k) => <li key={k}><a href={o.href.replace(/^\/x(?=\/)/, "/live")} className="cmd">{o.label} <span aria-hidden="true">→</span></a></li>)}
+          </ul>
+          <p className="mt-3 text-[0.75rem] text-ink-3">Each choice leads to another addressed object. Choosing never changes this Pearl.</p>
+        </figure>
+      );
     case "pearl":
       return (
         <p className="my-3 flex items-baseline gap-3 border-l border-gold/60 pl-4">
           <span aria-hidden="true" className="text-gold">◉</span>
-          <a href={b.href} className="font-serif text-lg">{b.label}</a>
+          <a href={b.href.replace(/^\/x(?=\/)/, "/live")} className="font-serif text-lg">{b.label}</a>
           <span className="truncate font-mono text-[0.68rem] text-ink-3">{b.href.slice(0, 60)}</span>
         </p>
       );
@@ -152,7 +165,7 @@ export function PearlState({ s }: { s: PearlState }) {
 export function PearlHeader({ pearl, id, digest, states, source }: { pearl: Pearl; id: string; digest: string; states: PearlState[]; source: string }) {
   const info = TYPE_INFO[pearl.type];
   return (
-    <div className="border-b border-gold/40 bg-[#13120d]">
+    <div className="border-b border-gold/40 bg-raised">
       <div className="wrap flex flex-wrap items-center gap-x-5 gap-y-2 py-3 font-mono text-[0.72rem] text-ink-2">
         <span className="flex items-center gap-2 text-gold"><PearlGlyph /> PEARL · {info.label.toUpperCase()}</span>
         <span className="text-ink" title={`sha256:${digest}`}>{id}</span>
@@ -228,9 +241,9 @@ export function ContinuityView({ pearl }: { pearl: Pearl }) {
 }
 
 /** A full Pearl page: header, title, content, continuity, research/work, actions. */
-export function PearlView({ pearl, id, digest, states, source, links, warnings, notes }: {
+export function PearlView({ pearl, id, digest, states, source, links, warnings, notes, world }: {
   pearl: Pearl; id: string; digest: string; states: PearlState[]; source: string;
-  links: { e: string; portable: string; compact: string }; warnings: string[]; notes?: string[];
+  links: { e: string; portable: string; compact: string }; warnings: string[]; notes?: string[]; world?: React.ReactNode;
 }) {
   const display = pearl.blocks.filter((b) => b.type !== "c");
   return (
@@ -243,6 +256,17 @@ export function PearlView({ pearl, id, digest, states, source, links, warnings, 
           <p className="mt-6 max-w-[44rem] text-ink-2">{TYPE_INFO[pearl.type].does}{TYPE_INFO[pearl.type].support === "descriptive" ? " This type is descriptive on this site." : ""}</p>
         </div>
       </header>
+
+      {pearl.blocks.length === 0 && (
+        <section className="wrap py-12">
+          <div className="card max-w-2xl p-6">
+            <p className="font-serif text-2xl">This Pearl has a name and nothing else, yet.</p>
+            <p className="mt-2 text-ink-2">It is valid, but there is nothing to experience. REMIX it (press <kbd className="kbd">r</kbd>) to add parts: words, a computation you can turn, choices that lead somewhere, other Pearls. Or ask the AI that made it to compose the parts.</p>
+          </div>
+        </section>
+      )}
+
+      {world}
 
       <PearlActions pearl={pearl} id={id} digest={digest} links={links} />
 

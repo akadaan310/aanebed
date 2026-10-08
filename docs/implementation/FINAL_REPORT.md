@@ -1,4 +1,69 @@
-# Final report — Pearls product transformation
+# Final report — Pearls v2, the Living Programmable Surface
+
+Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 2.0.0 · Design: `docs/architecture/PEARLS_V2.md`
+
+v2 makes the existing primitives into phenomena: a Pearl or a computational address shows its state, offers only its legal moves, and changes address when it changes. The research substrate, the vocabulary, the evidence model and every v1 Pearl are preserved. The owner's Claude Pearl keeps its v1.1.0 id, `p_rg86c59j7jmqp0w1`.
+
+## Implemented
+
+- **Living record (`living/1`)** for addresses and Pearls. It covers identity, state, legal affordances (address-producing ones carry the next address), history, parent, related objects, evidence rows (computed / checked / recorded / asserted / external / cannot be established) and an explanation generated from the state.
+- **Command palette:** `/` opens it, `?` shows help, single-key shortcuts work (n t x o m b v i e f r = c k p s y l), and keys 1–3 switch layers. The palette is contextual, so illegal commands are absent, and shortcuts ignore text fields.
+- **SURFACE · SUBSTRATE · PROOF** layers on every living object.
+- **`/live/{address}`:** the browser URL is the computational address. NEXT, PERTURB (touch a cell), TRACE, ORBIT, NORMALIZE and BACK are real links, so they work without JavaScript and the browser's back button works. The address bar animates old → operation → new. PROOF recomputes the value hash in the browser and compares it with the server's.
+- **The homepage hero is a living computation Pearl.** Its address lives in the fragment (`/#/map/…`), so the visible URL changes as you act. FORK turns it into a Pearl of your own.
+- **Living Pearls on `/e` and `/p`:**
+  - an object bar with VERIFY, FORK, REMIX, CARRY, SAVE and EXPLAIN;
+  - a **world**, showing related objects as a constellation plus an accessible list;
+  - a substrate view (URL anatomy, parsed blocks, state, lineage);
+  - a proof view (id recomputed in the browser, plus the evidence rows).
+- **FORK, REMIX, COMPARE:**
+  - FORK and REMIX produce new Pearls with `from={parent}`; the original is never modified;
+  - REMIX shows ORIGINAL · REMIX · DIFF;
+  - `/compare` names computation transitions (address A → B) and continuity transitions (thread → close).
+- **Grammar:** the optional `from=`, and the `choice:` block (transitions to other addressed objects). Empty experiences are valid but say they are empty. Everything is documented on `/compose` and in the schema.
+- **Capabilities:** `pearl.fork`, `pearl.diff`, `living.describe` (pure GETs). The command table is published in `/capabilities.json`, and `living` sections were added to `/.well-known/ai`, `llms.txt` and `/e.json`.
+- **`/play`:**
+  - the **Seven Verbs**, using MUSA url-machine transitions, labelled an experimental interaction grammar;
+  - a **shared surface** in Golden Surface's vocabulary, with visible ownership and authority, refusal of credentials, and convergence through the existing sync model. It is simulated in the browser.
+- **AI-generated experience mode:** the "Make me something alive" prompt (Prompt Laboratory #7 and the homepage), plus a showcase experience Pearl.
+- **Evidence:** E-016 (TESTED); claims C-23 (TESTED) and C-24 (HYPOTHESIS).
+
+## Tested (local production build)
+
+| Suite | Result |
+|---|---|
+| Unit | 94 tests: 93 pass, 1 skipped (PostgreSQL store test needs `CB_TEST_PG`), 0 fail |
+| Browser (Playwright, desktop + Pixel 7) | 164 pass, 6 skipped (device-specific), 0 fail. Includes axe WCAG 2.1 A/AA on 28 pages × 2 devices, the §44 design journey, keyboard navigation, no-JS links, illegal commands absent, remix with the original unchanged, `/play`, and the machine surface matching the human surface |
+| Ingress harness | questions 12/12 (1 skipped: POST /c returns 503 without a store), checks 26/26 |
+| Smoke | 38/38 |
+
+Specifically verified: every address-producing affordance resolves, including at the 12-operation limit; `/x` value hashes are unchanged; encoding survives for `&`, `#`, `+`, `%`, spaces and Unicode; a fork or remix leaves the original byte-identical; no command executes visitor-supplied code.
+
+## Deployed
+
+LIVE_PLACEHOLDER
+
+## Proposed (not built)
+
+- Shared persistence of Pearls and history. The adapter exists and is inactive; see FUTURE_PERSISTENCE.
+- A general-purpose programming language for URLs. The Seven Verbs are explicitly an experimental grammar.
+- New compute engines (Julia and others). The registry stays the only way in.
+
+## Not established
+
+- **C-24:** that a first-time person discovers the address transition within about 90 seconds. No user study was run; the browser test performs the journey, but it is not a person.
+- That AIs given the "Make me something alive" prompt compose good living Pearls. No AI provider was tested in this phase.
+
+## Security
+
+- No `eval` and no visitor code.
+- Every command maps to a registered pure operation or to the person's own click: the clipboard, or saving to their browser.
+- No credentials: the shared-surface simulation refuses anything credential-shaped and has no credential fields.
+- No hidden persistence, no outbound fetches from capabilities, no secrets, no force-push.
+
+---
+
+# Previous phase — Pearls product transformation (v1.1.0)
 
 Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Product commit `3d51588` · Deployment https://aanebed.vercel.app
 

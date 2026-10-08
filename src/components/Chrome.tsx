@@ -14,6 +14,8 @@ export const PRIMARY_NAV = [
 
 /** The research surface stays one tap away. */
 export const SECONDARY_NAV = [
+  { href: "/live", label: "Live" },
+  { href: "/play", label: "Play" },
   { href: "/research", label: "Research" },
   { href: "/ai", label: "AI Lab" },
   { href: "/verify", label: "Verify" },
@@ -76,6 +78,9 @@ export function Footer() {
           <p className="mb-3 font-semibold text-ink">Product</p>
           <ul className="space-y-1.5">
             {PRIMARY_NAV.map((n) => <li key={n.href}><Link href={n.href} className="no-underline hover:text-ink">{n.label}</Link></li>)}
+            <li><Link href="/live" className="no-underline hover:text-ink">Live addresses</Link></li>
+            <li><Link href="/play" className="no-underline hover:text-ink">Play</Link></li>
+            <li><Link href="/compare" className="no-underline hover:text-ink">Compare</Link></li>
             <li><Link href="/prompts" className="no-underline hover:text-ink">Prompts</Link></li>
             <li><Link href="/continue" className="no-underline hover:text-ink">Continuity Pearls</Link></li>
           </ul>

@@ -7,6 +7,7 @@
 import { ORIGIN } from "@/config/origin";
 import { LIMITS as X_LIMITS, REGISTRY as X_REGISTRY } from "./address";
 import { LIMITS as E_LIMITS } from "./experience";
+import { COMMANDS, RESERVED_KEYS } from "./living/commands";
 
 export const TEXT_LIMIT = 10_000;
 
@@ -46,6 +47,30 @@ export const CAPABILITIES: Capability[] = [
     example: `${ORIGIN}/api/v1/pearl/decode?u=/p/p_…`,
   },
   {
+    id: "pearl.fork", version: "1", purpose: "FORK: derive a new Pearl from a Pearl link. Same composition; from= names the parent id; by and session say it is a fork. The parent is never modified (it lives in its own link).",
+    method: "GET", url: `${ORIGIN}/api/v1/pearl/fork?u={a Pearl link}`,
+    input: { u: "a /e?… or /p/… link" }, output: { parent: "{ id }", fork: "{ id, digest, from, pearl }", links: "{ e, portable }" },
+    mode: "pure", side_effects: "none", auth: "none", limits: { input_chars: 20_000 },
+    errors: { "400": "missing u", "422": "not a valid Pearl" }, engine: "javascript (this site)",
+    example: `${ORIGIN}/api/v1/pearl/fork?u=/e?type=notes%26title=Hello%26b1=p:First`,
+  },
+  {
+    id: "pearl.diff", version: "1", purpose: "COMPARE: a structural diff of two Pearls: changed metadata, blocks aligned as same/added/removed/changed, computation transitions (address A → address B with both value hashes), continuity transitions (threads closed or opened, decisions and actions added), and lineage.",
+    method: "GET", url: `${ORIGIN}/api/v1/pearl/diff?a={Pearl link}&b={Pearl link}`,
+    input: { a: "Pearl link", b: "Pearl link" }, output: { diff: "{ relation, meta, blocks, counts, computations, continuity }" },
+    mode: "pure", side_effects: "none", auth: "none", limits: { input_chars: 20_000, blocks: E_LIMITS.blocks },
+    errors: { "400": "missing a or b", "422": "either is not a valid Pearl" }, engine: "javascript (this site)",
+    example: `${ORIGIN}/api/v1/pearl/diff?a=/e?title=A%26b1=thread:Ship+it&b=/e?title=A%26b1=thread:Ship+it%26b2=close:Ship+it`,
+  },
+  {
+    id: "living.describe", version: "1", purpose: "The living record of a Pearl or a computational address: identity, type, state, the legal affordances (each with its next address where one exists), history, parent, related objects, how each element is known, an explanation generated from the state, and limits. The human page renders the same record.",
+    method: "GET", url: `${ORIGIN}/api/v1/living?u={Pearl link | /x/… | /live/… address}`,
+    input: { u: "string" }, output: { record: "living/1" },
+    mode: "pure", side_effects: "none", auth: "none", limits: { input_chars: 20_000 },
+    errors: { "400": "missing u", "422": "neither a resolvable address nor a valid Pearl" }, engine: "javascript (this site)",
+    example: `${ORIGIN}/api/v1/living?u=/x/map/eca/90/8/state/5`,
+  },
+  {
     id: "hash.sha256", version: "1", purpose: "SHA-256 of a UTF-8 string, with the 80-bit Crockford-base32 short form Pearls use for ids. Useful because language models cannot compute hashes reliably.",
     method: "GET", url: `${ORIGIN}/api/v1/hash?text={text}`,
     input: { text: `string, at most ${TEXT_LIMIT} characters` }, output: { sha256: "hex", short: "16 base32 chars", bytes: "number" },
@@ -73,7 +98,7 @@ export const CAPABILITIES: Capability[] = [
 
 /** Compute engines behind capabilities. Only "javascript" exists; others are an adapter boundary, not a service. */
 export const ENGINES = [
-  { id: "javascript", status: "active", runs: ["pearl.check", "pearl.decode", "hash.sha256", "text.transform", "compute.eca"] },
+  { id: "javascript", status: "active", runs: ["pearl.check", "pearl.decode", "pearl.fork", "pearl.diff", "living.describe", "hash.sha256", "text.transform", "compute.eca"] },
   { id: "julia", status: "not available", note: "No Julia runtime is deployed. A future engine would implement the ComputeEngine interface (src/lib/capabilities.ts) behind a named, bounded capability; nothing is substituted for it." },
 ];
 
@@ -89,6 +114,11 @@ export function registry() {
     version: 1,
     note: "Every operation listed here runs on this site and is covered by tests. All are pure GETs: no side effects, no authentication, no network access, no evaluation of submitted code. Operations not listed do not exist.",
     capabilities: CAPABILITIES,
+    commands: {
+      note: "The verbs the interface offers. An object exposes only the commands its living record lists (GET /api/v1/living?u=…); illegal commands are absent. client:* commands are the person's own action in their browser (clipboard, browser-local library); nothing is sent.",
+      keys: RESERVED_KEYS,
+      list: COMMANDS,
+    },
     engines: ENGINES,
     requires_user_action: [
       { action: "Keep a Pearl", where: "the person's browser (My Pearls)", note: "No server write exists. Keeping is the person's own click, stored locally." },

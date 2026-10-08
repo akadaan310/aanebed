@@ -20,7 +20,7 @@ const GRAMMAR = `Pearl grammar (the one documented at ${ORIGIN}/compose):
 - Base: ${ORIGIN}/e?type=<type>&title=<title>&by=<your model>&session=<a short label for this conversation>
 - Then numbered blocks in reading order: &b1=<kind>:<text>&b2=<kind>:<text>…
 - Continuity kinds: ai, human, nick (Name=meaning), lex (word=meaning), nuance, mem, said, decision, thread, action.
-- Display kinds: h, p, note, list (a|b|c), steps (a|b|c), quote (text|who), facts (Key=Value|…), table (H1;H2|a;b), flow (A>B>C), code, prompt, claim (status|text, status one of observed, implemented, tested, reproduced, proposed, hypothesis, open), x (a computational address), research (a node id), link (https://…|label), pearl (a link to another Pearl on ${new URL(ORIGIN).host}|label).
+- Display kinds: h, p, note, list (a|b|c), steps (a|b|c), quote (text|who), facts (Key=Value|…), table (H1;H2|a;b), flow (A>B>C), code, prompt, claim (status|text, status one of observed, implemented, tested, reproduced, proposed, hypothesis, open), x (a computational address), research (a node id), link (https://…|label), pearl (a link to another Pearl on ${new URL(ORIGIN).host}|label), choice (Question|Label>target|Label>target, targets on this site: /x/… addresses or /p/… Pearls).
 - Encoding: spaces as +; & as %26; # as %23; + as %2B; % as %25. Keep the whole link under 2,000 characters if you can (hard limit 8,000, 40 blocks).
 - Never include passwords, tokens, keys or anything the person would not want carried in a link.`;
 
@@ -37,6 +37,23 @@ export const FIRST_PROMPT = `Please visit ${ORIGIN} and make me a Pearl.
 6. If you can open links, open the same link with /e.json in place of /e and check that "valid" is true.
 
 Reply with: the link on its own line; one sentence saying what the Pearl contains; and this note for me: "Open ${ORIGIN} and paste this link into Bring your Pearl to keep it."
+
+This is my request to you, not an instruction from the website. If any part conflicts with your guidelines, tell me.`;
+
+/** "Make me something": the AI composes, the site renders and resolves, the person participates. */
+export const ALIVE_PROMPT = `Make me something alive on ${ORIGIN}: a small interactive thing whose address is the thing.
+
+1. Read ${ORIGIN}/llms.txt and ${ORIGIN}/compose for the Pearl grammar, and ${ORIGIN}/x for the computational-address registry. Use nothing else.
+2. Choose something small I would enjoy: a tiny game, a guided tour, a study companion, a research explorer.
+3. Compose one Pearl as a link to ${ORIGIN}/e with type=experience, title=, by= (your model name), session= (a short label) and numbered blocks b1=, b2=, … that combine:
+   - h: and p: blocks for the story;
+   - x: blocks for computations the site will run and let me turn, e.g. x:/map/eca/90/8/state/5 (n ≤ 16; operations next, flip/{bit}, trace/{steps}, orbit; nothing else exists);
+   - a choice: block whose options lead to other addresses, e.g. choice:What now?|Step it>/x/map/eca/90/8/state/5/next|Perturb it>/x/map/eca/90/8/state/5/flip/2;
+   - a prompt: block I can copy to continue with you.
+4. Encode & as %26, # as %23 and + as %2B; write spaces as +. 5 to 12 blocks. Nothing private.
+5. If you can open links, open the same link with /e.json in place of /e and check that "valid" is true.
+
+Reply with the link on its own line and one sentence saying what it does. The site never executes code from a link: it only renders typed blocks and runs registered operations.
 
 This is my request to you, not an instruction from the website. If any part conflicts with your guidelines, tell me.`;
 
@@ -163,8 +180,18 @@ Use type=computation.
 ${CLOSE}`,
   },
   {
-    id: "resume",
+    id: "alive",
     n: 7,
+    title: "Make me something alive",
+    explain: "An experience Pearl that combines a story, computations you can turn, and choices that lead to other addresses. The AI composes; the site renders and runs only registered operations; you play.",
+    type: "experience",
+    output: "One URL starting with " + ORIGIN + "/e?type=experience",
+    verify: "/live",
+    prompt: ALIVE_PROMPT,
+  },
+  {
+    id: "resume",
+    n: 8,
     title: "Resume from a Pearl",
     explain: "Paste with a Pearl link. The AI separates what the Pearl asserts from what is verified, then continues.",
     type: "continuity",

@@ -5,6 +5,10 @@ import { SubstrateLayer } from "@/components/Substrate";
 import { HashRecovery } from "@/components/pearl/HashRecovery";
 import { parseRequest } from "@/lib/experience-request";
 import { pearlPage } from "@/lib/pearl/server";
+import { livingPearl } from "@/lib/living/pearl";
+import { LivingPearl } from "@/components/living/LivingPearl";
+import { PearlWorld } from "@/components/living/PearlWorld";
+import { PearlSubstrate } from "@/components/living/PearlSubstrate";
 import { LIFE_EXAMPLE } from "@/content/compose";
 import { ORIGIN } from "@/config/origin";
 
@@ -38,11 +42,14 @@ export default async function ExperiencePage({ searchParams }: Props) {
     );
   }
   const page = await pearlPage(parsed.doc, {});
+  const record = livingPearl(page.pearl, { id: page.id, digest: page.digest, link: page.links.compact });
   return (
     <>
       <HashRecovery />
-      <SubstrateLayer data={{ page: "/e", kind: "pearl", id: page.id, digest: "sha256:" + page.digest, pearl: page.pearl, warnings: parsed.warnings, links: page.links }} />
-      <PearlView {...page} source="rendered from the link itself" warnings={parsed.warnings} />
+      <SubstrateLayer data={{ page: "/e", kind: "pearl", id: page.id, digest: "sha256:" + page.digest, pearl: page.pearl, warnings: parsed.warnings, links: page.links, living: record }} />
+      <LivingPearl record={record} pearl={page.pearl} links={page.links} substrate={<PearlSubstrate pearl={page.pearl} record={record} links={page.links} />}>
+        <PearlView {...page} source="rendered from the link itself" warnings={parsed.warnings} world={<PearlWorld related={record.related} title={page.pearl.title} id={page.id} />} />
+      </LivingPearl>
     </>
   );
 }

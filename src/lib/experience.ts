@@ -37,6 +37,7 @@ export type Block =
   | { type: "prompt"; text: string }
   | { type: "claim"; status: ClaimStatus; text: string }
   | { type: "pearl"; href: string; label: string }
+  | { type: "choice"; prompt: string; options: { label: string; href: string }[] }
   | { type: "c"; kind: ContinuityKind; key?: string; text: string };
 
 /** Evidence statuses a research Pearl may assert for a claim (the site's taxonomy, as the composer's assertion). */
@@ -69,6 +70,8 @@ export interface Experience {
   session: string | null;
   /** optional explicit Pearl type (type=); absent in older links, where it is inferred */
   type?: PearlTypeName;
+  /** optional parent Pearl id (from=): set by fork and remix. Lineage as asserted; never proof of authorship */
+  from?: string;
   blocks: Block[];
 }
 
@@ -100,6 +103,7 @@ export const BLOCK_TYPES: { type: Block["type"]; syntax: string; renders: string
   { type: "prompt", syntax: "prompt:text", renders: "a reusable prompt with a copy button (prompt and workflow Pearls)", example: "prompt:Summarise the open threads, then propose one next action." },
   { type: "claim", syntax: "claim:status|text", renders: "a research claim with an asserted status: observed, implemented, tested, reproduced, proposed, hypothesis or open", example: "claim:hypothesis|Numbered blocks survive URL-normalising fetchers." },
   { type: "pearl", syntax: "pearl:URL of another Pearl on this site|Label", renders: "a link to another Pearl (collections)", example: "pearl:/e?title=Night+one&b1=p:Hello|Night one" },
+  { type: "choice", syntax: "choice:Question|Label>target|Label>target", renders: "a set of transitions: each option leads to another Pearl or computational address on this site (up to 6; /p/ and /x/ targets are safest inside a link)", example: "choice:Where next?|Take one step>/x/map/eca/90/8/state/5/next|Perturb it>/x/map/eca/90/8/state/5/flip/2" },
 ];
 
 const ALIASES: Record<string, Block["type"]> = {
@@ -119,6 +123,7 @@ const ALIASES: Record<string, Block["type"]> = {
   prompt: "prompt", ask: "prompt",
   claim: "claim", finding: "claim",
   pearl: "pearl", item: "pearl",
+  choice: "choice", choose: "choice", options: "choice",
 };
 
 const C_ALIASES: Record<string, ContinuityKind> = {
@@ -143,6 +148,15 @@ function tolerant(v: string): string {
     try { s = decodeURIComponent(s); } catch { break; }
   }
   return s;
+}
+
+/** A target on this site: a Pearl (/e, /p), a computational address (/x, /live) or a continuity record (/c). */
+function sitePath(raw: string): string | null {
+  const h = raw.trim();
+  let path: string | null = null;
+  if (h.startsWith("/")) path = h;
+  else { try { const u = new URL(h); if (u.protocol === "https:" && TRUSTED_HOSTS.has(u.host)) path = u.pathname + u.search; } catch { /* rejected */ } }
+  return path && /^\/(e|p|x|c|live)(\/|\?|$)/.test(path) ? path.slice(0, 4000) : null;
 }
 
 export function parseBlock(raw: string, warnings: string[], researchIds: Set<string>): Block | null {
@@ -223,12 +237,30 @@ export function parseBlock(raw: string, warnings: string[], researchIds: Set<str
     }
     case "pearl": {
       const [href, ...rest] = body.split("|");
-      const h = href.trim();
-      let path: string | null = null;
-      if (h.startsWith("/")) path = h;
-      else { try { const u = new URL(h); if (u.protocol === "https:" && TRUSTED_HOSTS.has(u.host)) path = u.pathname + u.search; } catch { /* rejected below */ } }
-      if (!path || !/^\/(e|p|x|c)(\/|\?|$)/.test(path)) { warnings.push(`pearl link rejected (must be a Pearl on this site): ${clean(h, 60)}`); return null; }
-      return { type, href: path.slice(0, 4000), label: clean(rest.join("|"), 120) || "Pearl" };
+      const path = sitePath(href);
+      if (!path) { warnings.push(`pearl link rejected (must be a Pearl on this site): ${clean(href, 60)}`); return null; }
+      return { type, href: path, label: clean(rest.join("|"), 120) || "Pearl" };
+    }
+    case "choice": {
+      // Options are "Label>target"; a "|" inside a target (an unencoded /e link) is re-joined to it.
+      const parts = body.split("|");
+      const prompt = clean(parts.shift() ?? "", 200);
+      const raw: string[] = [];
+      for (const part of parts) {
+        if (/^[^>]{1,80}>\s*(\/|https:)/.test(part) || !raw.length) raw.push(part);
+        else raw[raw.length - 1] += "|" + part;
+      }
+      const options: { label: string; href: string }[] = [];
+      for (const o of raw) {
+        const i = o.indexOf(">");
+        const label = clean(i > 0 ? o.slice(0, i) : "", 80);
+        const path = i > 0 ? sitePath(o.slice(i + 1)) : null;
+        if (!label || !path) { warnings.push(`choice option rejected (needs Label>target on this site): ${clean(o, 60)}`); continue; }
+        if (options.length >= 6) { warnings.push("a choice holds at most 6 options; the rest were dropped"); break; }
+        options.push({ label, href: path });
+      }
+      if (!options.length) { warnings.push("choice without a valid option dropped"); return null; }
+      return { type, prompt: prompt || "Choose", options };
     }
   }
   return null;
@@ -239,7 +271,7 @@ const TRUSTED_HOSTS = new Set(TRUSTED_ORIGINS.filter((o) => o.startsWith("https:
 type Params = Record<string, string | string[] | undefined> | URLSearchParams;
 
 /** Keys the grammar defines. Anything else in a raw query is treated as part of the previous value. */
-export const KNOWN_KEYS = /^(title|t|by|session|for|type|b|block|s|b\d{1,3}|format)$/;
+export const KNOWN_KEYS = /^(title|t|by|session|for|type|from|b|block|s|b\d{1,3}|format)$/;
 
 /**
  * Parse a raw query string the way a person or a model meant it, not only the
@@ -315,6 +347,12 @@ export function parseExperience(p: Params | string, researchIds: Set<string>, ra
     if (PEARL_TYPES.includes(typeRaw as PearlTypeName)) doc.type = typeRaw as PearlTypeName;
     else warnings.push(`unknown type "${typeRaw}" ignored; the type is inferred from the blocks`);
   }
+  const fromRaw = clean(all(p, "from")[0] ?? "", 40).toLowerCase();
+  if (fromRaw) {
+    if (/^p_[0-9abcdefghjkmnpqrstvwxyz]{16}$/.test(fromRaw)) doc.from = fromRaw;
+    else warnings.push(`from= is not a Pearl id ("${fromRaw.slice(0, 20)}"); lineage ignored`);
+  }
+  if (!blocks.length && title) warnings.push("this Pearl has a title but no blocks: it is valid, but there is nothing to experience yet. Add blocks (h, p, x, choice, pearl, prompt…) to make it alive");
   return { doc, id: hashJson(doc as unknown as Json), warnings, errors };
 }
 

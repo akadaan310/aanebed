@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
-const PAGES = ["/", "/create", "/create/conversation", "/create/computation", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
+const LIVING = "/e?type=experience&title=A+walk+through+Rule+90&by=Pearls&session=living-example&b1=h:Eight+cells+on+a+ring&b2=p:Start+here&b3=x:/map/eca/90/8/state/5&b4=choice:What+would+you+like+to+do%3F|Take+one+step>/x/map/eca/90/8/state/5/next|Flip+a+cell>/x/map/eca/90/8/state/5/flip/2&b5=research:purl&b6=prompt:Predict+the+next+state";
+const PAGES = ["/", "/live", "/live/map/eca/90/8/state/5", "/live/map/eca/30/16/state/256/trace/16", "/play", "/compare", LIVING, "/create", "/create/conversation", "/create/computation", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
 
 test.describe("every page", () => {
   for (const p of PAGES) {
@@ -225,7 +226,7 @@ test("My Pearls: export, clear, and import back with a preview", async ({ page }
 
 test("Prompt Laboratory: seven prompts, each complete, standalone and copyable", async ({ page }) => {
   await page.goto("/prompts");
-  await expect(page.getByRole("article")).toHaveCount(7);
+  await expect(page.getByRole("article")).toHaveCount(8);
   const first = page.getByRole("article").first();
   await first.getByText("Show the full prompt").click();
   const text = await first.locator("pre").textContent();
@@ -307,7 +308,8 @@ test("Spaces: create, rename, keep a Pearl in it, compose a collection, delete m
   await expect(page.getByRole("status")).toContainText("1 item(s) moved to Archive");
   await page.goto(href!);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Cooking") // the collection was composed before the rename; a Pearl never changes;
-  await expect(page.getByRole("link", { name: "Abed & Claude, 2am" })).toBeVisible();
+  await expect(page.getByLabel("Content").getByRole("link", { name: "Abed & Claude, 2am" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Objects this Pearl leads to" }).getByRole("link", { name: "Abed & Claude, 2am" })).toBeVisible();
 });
 
 test("Capabilities: the page lists exactly the registry, and a listed operation runs", async ({ page, request }) => {
@@ -317,4 +319,133 @@ test("Capabilities: the page lists exactly the registry, and a listed operation 
   const h = await (await request.get("/api/v1/hash?text=hello")).json();
   expect(h.sha256).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
   expect(reg.engines.find((e: { id: string }) => e.id === "julia").status).toBe("not available");
+});
+
+// ------------------------------------------------------------------ Pearls v2: living objects
+
+test("v2 design test: discover it is programmable, make it change, see the address change, fork it, carry it", async ({ page, isMobile }) => {
+  await page.goto("/");
+  // 30 s: the object says what it can do
+  await expect(page.getByRole("button", { name: /What can it do\?/ }).first()).toBeVisible();
+  // 60 s: make it change — the URL changes with it
+  await page.getByRole("link", { name: /^NEXT/ }).first().click();
+  await expect(page).toHaveURL(/#\/map\/eca\/90\/8\/state\/5\/next$/);
+  await expect(page.getByText("Rule 90 · state 136").first()).toBeVisible();
+  await expect(page.getByText("the address changed").first()).toBeVisible();
+  // 90 s: the change is an address/state transition
+  await page.getByRole("tab", { name: "Substrate" }).first().click();
+  await expect(page.getByText("state.next").first()).toBeVisible();
+  // 2 min: fork it into a Pearl of your own
+  await page.getByRole("tab", { name: "Surface" }).first().click();
+  await page.getByRole("button", { name: /^FORK/ }).first().click();
+  await expect(page).toHaveURL(/\/p\/p_[0-9a-z]{16}\./);
+  await expect(page.getByRole("link", { name: /forked from/ })).toBeVisible();
+  // 3 min: carry it to another AI
+  await page.getByRole("button", { name: /^CARRY/ }).click();
+  await expect(page.getByRole("status").filter({ hasText: /another AI|Could not copy/ })).toBeVisible();
+  void isMobile;
+});
+
+test("/live: keyboard commands navigate a programmable state space; BACK and the browser's back work", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard journey on desktop");
+  await page.goto("/live/map/eca/90/8/state/5");
+  await page.keyboard.press("n");
+  await expect(page).toHaveURL(/\/live\/map\/eca\/90\/8\/state\/5\/next$/);
+  await expect(page.getByText("Rule 90 · state 136").first()).toBeVisible();
+  await page.keyboard.press("x"); // PERTURB has options: the palette opens, filtered
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/next\/flip\/1$/);
+  await page.keyboard.press("b");
+  await expect(page).toHaveURL(/\/state\/5\/next$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/flip\/1$/);
+  await page.keyboard.press("v");
+  await expect(page.getByText("✓ identical: the same resolver, run twice, agrees")).toBeVisible();
+  await expect(page.getByText("cannot be established").first()).toBeVisible();
+});
+
+test("/live: illegal moves are absent; a map offers states, not NEXT; the palette is the affordance map", async ({ page }) => {
+  await page.goto("/live/map/eca/90/8");
+  await expect(page.getByRole("link", { name: /^NEXT/ })).toHaveCount(0);
+  await page.getByRole("button", { name: /What can it do\?/ }).click();
+  const list = page.getByRole("listbox", { name: "Commands" });
+  await expect(list).toBeVisible();
+  await expect(list.getByRole("option", { name: /^› ?NEXT|^NEXT/ })).toHaveCount(0);
+  await expect(list.getByRole("option", { name: /^OPEN state 1 ·/ })).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const r = await page.goto("/live/map/eca/90/8/state/999");
+  expect(r?.status()).toBe(200);
+  await expect(page.getByText(/out_of_range/)).toBeVisible();
+});
+
+test("/live without JavaScript: every command is a real link", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("/live/map/eca/90/8/state/5");
+  await page.getByRole("link", { name: /^NEXT/ }).click();
+  await expect(page).toHaveURL(/\/state\/5\/next$/);
+  await expect(page.getByText("Rule 90 · state 136").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("Living Pearl: VERIFY, REMIX (original unchanged), COMPARE; shortcuts ignore text fields", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop keyboard journey");
+  await page.goto(LIVING);
+  const original = page.url();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A walk through Rule 90");
+  await expect(page.getByRole("list", { name: "What would you like to do?" }).getByRole("link")).toHaveCount(2);
+  await expect(page.getByRole("heading", { name: /It leads to \d+ other objects/ })).toBeVisible();
+  await page.keyboard.press("v");
+  await expect(page.getByText(/✓ recomputed here: p_/)).toBeVisible();
+  await expect(page.getByText("asserted").first()).toBeVisible();
+  await page.keyboard.press("1");
+  await page.keyboard.press("r");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Blocks").press("End");
+  await dialog.getByLabel("Blocks").pressSequentially("\nnote:my remix", { delay: 5 }); // typing "n", "r"… must not trigger commands
+  await expect(dialog.getByText("1 added")).toBeVisible();
+  await dialog.getByRole("button", { name: "Make the remix" }).click();
+  await expect(page).toHaveURL(/\/p\/p_/);
+  await expect(page.getByRole("link", { name: /forked from/ })).toBeVisible();
+  const remix = page.url();
+  // the original link still renders exactly the original
+  await page.goto(original);
+  await expect(page.getByText("my remix")).toHaveCount(0);
+  await page.goto(`/compare?a=${encodeURIComponent(original.replace(/^https?:\/\/[^/]+/, ""))}&b=${encodeURIComponent(remix.replace(/^https?:\/\/[^/]+/, ""))}`);
+  await expect(page.getByText("B is derived from A.")).toBeVisible();
+  await expect(page.getByText("1 added")).toBeVisible();
+});
+
+test("Play: the Seven Verbs walk IDLE → BUILT; the shared surface refuses credentials and offers only legal moves", async ({ page }) => {
+  await page.goto("/play");
+  await page.getByRole("button", { name: /^START/ }).click();
+  await page.getByRole("button", { name: /^SWITCH/ }).click();
+  await expect(page.getByText(/the URL changed under the session/)).toBeVisible();
+  await page.getByRole("button", { name: "WRITE" }).click();
+  await page.getByRole("button", { name: "COMMIT the draft" }).click();
+  await page.getByRole("button", { name: "BUILD" }).click();
+  await expect(page.getByRole("link", { name: /open the Pearl p_/ })).toBeVisible();
+  await page.getByRole("radio", { name: "ر Muse" }).click();
+  const moves = page.locator("section", { has: page.getByRole("heading", { name: /Participant → surface/ }) });
+  await expect(moves.getByRole("button", { name: "closetab t1" })).toHaveCount(0); // not its tab: not offered
+  await moves.getByRole("button", { name: "newtab: open a tab you own" }).click();
+  await moves.getByLabel(/Text for/).fill("my password is hunter2");
+  await moves.getByRole("button", { name: "type a note in t2" }).click();
+  await expect(moves.getByText(/REFUSED · refused: that looks like a credential/)).toBeVisible();
+  await expect(moves.getByText(/^CONVERGED/)).toBeVisible();
+});
+
+test("machine surface: /e.json carries the same living record; /capabilities.json lists the commands", async ({ request }) => {
+  const e = await (await request.get("/e.json" + LIVING.slice(2))).json();
+  expect(e.living.format).toBe("living/1");
+  expect(e.living.affordances.map((a: { command: string }) => a.command)).toContain("fork");
+  const caps = await (await request.get("/capabilities.json")).json();
+  expect(caps.commands.list.map((c: { id: string }) => c.id)).toEqual(expect.arrayContaining(["next", "perturb", "fork", "remix", "compare", "verify"]));
+  for (const id of ["pearl.fork", "pearl.diff", "living.describe"]) expect(caps.capabilities.map((c: { id: string }) => c.id)).toContain(id);
+  const l = await (await request.get("/api/v1/living?u=/live/map/eca/90/8/state/5")).json();
+  expect(l.record.affordances.find((a: { command: string }) => a.command === "next").href).toBe("/map/eca/90/8/state/5/next");
 });

@@ -42,7 +42,7 @@ export default function Explore() {
           <h1 id="hero-h" className="display max-w-[13ch]">The web is becoming programmable.</h1>
           <p className="lede mt-8 max-w-[40ch]">{SITE.oneSentence} Pearls are the product; this is the grammar, the computation, the continuity model and the research underneath.</p>
           <ul className="mt-10 flex flex-wrap gap-3 text-[0.9rem]">
-            {[["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["AI Laboratory", "/ai"], ["Verify every claim", "/verify"], ["Schemas", "/schemas/pearl.schema.json"]].map(([k, h]) => (
+            {[["Live addresses", "/live"], ["Play: the Seven Verbs", "/play"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["AI Laboratory", "/ai"], ["Verify every claim", "/verify"], ["Schemas", "/schemas/pearl.schema.json"]].map(([k, h]) => (
               <li key={h}><a href={h} className="btn">{k}</a></li>
             ))}
           </ul>

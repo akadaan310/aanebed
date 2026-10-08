@@ -8,7 +8,9 @@ import { CopyButton } from "@/components/CopyPrompt";
 import { SubstrateLayer } from "@/components/Substrate";
 import { Constellation } from "@/components/Constellation";
 import { OFFER, LIFE_EXAMPLE } from "@/content/compose";
-import { FIRST_PROMPT } from "@/content/prompts";
+import { FIRST_PROMPT, ALIVE_PROMPT } from "@/content/prompts";
+import { LivingAddress } from "@/components/living/LivingAddress";
+import { PEARL_FORMAT, type Pearl } from "@/lib/pearl/model";
 import { EXPERIENCES } from "@/content/experiences";
 import { SITE } from "@/content/site";
 import { parseExperience } from "@/lib/experience";
@@ -21,11 +23,16 @@ export default async function Home() {
   const example = toPearl(parseExperience(LIFE_EXAMPLE.slice(LIFE_EXAMPLE.indexOf("?") + 1), new Set(RESEARCH_IDS)).doc);
   const exampleId = pearlId(example);
   const portable = await encodePortable(example);
+  // The living demo is itself a Pearl: a computation Pearl whose address you can turn.
+  const DEMO_ADDRESS = "/map/eca/90/8/state/5";
+  const demo: Pearl = { format: PEARL_FORMAT, type: "computation", title: "Rule 90 · a pearl you can turn", by: "Pearls", for: null, session: "home", blocks: [{ type: "x", address: DEMO_ADDRESS }, { type: "p", text: "Eight cells on a ring. Press NEXT and the address gains /next. Touch a cell to perturb it. Every state you reach is a URL." }] };
+  const demoId = pearlId(demo);
+  const demoLink = await encodePortable(demo);
   const sample = `Here's your Pearl! I kept the names, our words and what's still open:\n\n${LIFE_EXAMPLE}\n\nOpen ${ORIGIN} and paste this link into “Bring your Pearl” to keep it.`;
 
   return (
     <>
-      <SubstrateLayer data={{ page: "/", product: "Pearls — programmable URLs for AI", loop: ["discover", "ask", "compose", "bring back", "keep", "reuse", "compose again"], first_prompt: FIRST_PROMPT, offer: OFFER.headline, machine: ["/llms.txt", "/.well-known/ai", "/capabilities.json", "/research.json"] }} />
+      <SubstrateLayer data={{ page: "/", product: "Pearls — programmable URLs for AI", living_demo: { pearl: demoId, address: "/map/eca/90/8/state/5", machine: "/x/map/eca/90/8/state/5", record: "/api/v1/living?u=/x/map/eca/90/8/state/5" }, loop: ["discover", "ask", "compose", "bring back", "keep", "reuse", "compose again"], first_prompt: FIRST_PROMPT, offer: OFFER.headline, machine: ["/llms.txt", "/.well-known/ai", "/capabilities.json", "/research.json"] }} />
 
       {/* Act I — The invitation */}
       <section aria-labelledby="hero-h" className="paper-glow overflow-hidden" data-substrate="invitation → pearl" data-address="/" data-pointer="/.well-known/ai#/compose">
@@ -33,7 +40,7 @@ export default async function Home() {
           <div>
             <p className="eyebrow mb-6 flex items-center gap-2"><PearlGlyphClient size={18} /> Pearls · programmable URLs for AI</p>
             <h1 id="hero-h" className="keynote max-w-[11ch]">Your AI can make a Pearl.</h1>
-            <p className="mt-8 max-w-[34ch] text-[1.3rem] leading-relaxed text-ink-2">Create something with your AI. Bring it back here. Keep it, shape it, and use it again.</p>
+            <p className="mt-8 max-w-[34ch] text-[1.3rem] leading-relaxed text-ink-2">A Pearl is a thing with an address. The one beside this is alive: press <b className="font-medium text-ink">NEXT</b>, and watch the address change.</p>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <a href="#first" className="btn-solid">Try your first Pearl</a>
               <a href="#possible" className="btn-soft">Explore what&apos;s possible</a>
@@ -44,8 +51,40 @@ export default async function Home() {
             </div>
           </div>
           <div className="relative">
-            <PearlObject pearl={example} id={exampleId} href={portable.path} tilt />
-            <p className="mt-4 text-center text-[0.85rem] text-ink-3">A real Pearl, made from a link. Open it, inspect it, keep it.</p>
+            <div className="card relative overflow-hidden p-4 shadow-[0_30px_60px_-30px_rgb(60_40_10/0.45)] sm:p-6" data-substrate="pearl → address → state → transition → result" data-address={`/p/${demoId}`}>
+              <p className="eyebrow mb-3 flex flex-wrap items-center gap-x-2">A Pearl you can turn <a href={new URL(demoLink.url).pathname} className="font-mono text-[0.72rem] font-normal normal-case tracking-normal text-ink-3">{demoId}</a></p>
+              <LivingAddress initial={DEMO_ADDRESS} mode="embedded" pearl={{ id: demoId, title: demo.title }} compact />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Act I½ — This page is an address */}
+      <section id="alive" aria-labelledby="alive-h" className="scroll-mt-16 border-t border-rule" data-substrate="address → affordance → transition → new address → new object" data-address="/live" data-pointer="/capabilities.json">
+        <div className="wrap act grid gap-12 lg:grid-cols-[1.1fr_1fr]">
+          <div>
+            <p className="eyebrow mb-4">The product moment</p>
+            <h2 id="alive-h" className="title max-w-[18ch]">The URL changed because you touched the thing.</h2>
+            <ol className="mt-8 space-y-3 font-mono text-[0.92rem]" aria-label="What just happened">
+              {[["THIS PAGE IS AN ADDRESS", "/#/map/eca/90/8/state/5"], ["WHAT CAN IT DO?", "NEXT · PERTURB · TRACE · ORBIT · FORK · VERIFY  (press /)"], ["NEXT", "one registered transition, f(x)"], ["THE ADDRESS CHANGED", "…/state/5/next"], ["THE OBJECT CHANGED", "state 5 → state 136, with a new value hash"]].map(([k, v], i) => (
+                <li key={k} className="grid grid-cols-[1.5rem_1fr] gap-3"><span className="text-emerald" aria-hidden="true">{i ? "↓" : "◉"}</span><span><b className="font-semibold tracking-wide">{k}</b><span className="block text-[0.8rem] text-ink-3">{v}</span></span></li>
+              ))}
+            </ol>
+            <p className="mt-8 max-w-[46ch] text-[1.02rem] text-ink-2">Nothing in the URL is executed. Each word is looked up in a fixed registry of pure operations, so every address you reach is a real object: copy it, share it, give it to an AI, fork it into a Pearl of your own.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/live/map/eca/90/8/state/5" className="btn-solid">Open it full size</Link>
+              <Link href="/play" className="btn-soft">Play the Seven Verbs</Link>
+              <Link href="/capabilities" className="btn-soft">What can be called</Link>
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="card p-5">
+              <p className="font-serif text-xl">Ask your AI to make you something alive</p>
+              <p className="mt-1 text-[0.92rem] text-ink-2">A tiny game, a guided tour, a study companion: the AI composes it as a Pearl, this site renders it and runs only registered operations, and you play.</p>
+              <div className="mt-3 flex flex-wrap gap-2"><CopyButton text={ALIVE_PROMPT} label="Copy the prompt" /><a href="#first" className="btn !min-h-9 !py-1 text-[0.8rem]">Bring back what it makes</a></div>
+            </div>
+            <PearlObject pearl={example} id={exampleId} href={portable.path} />
+            <p className="text-center text-[0.85rem] text-ink-3">Not every Pearl computes. This one carries a conversation to the next AI.</p>
           </div>
         </div>
       </section>

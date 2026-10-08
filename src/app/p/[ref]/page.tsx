@@ -7,6 +7,10 @@ import { decodePortable, splitPortable } from "@/lib/pearl/portable";
 import { parseExperience, parseQueryString } from "@/lib/experience";
 import { RESEARCH_IDS } from "@/lib/experience-request";
 import { pearlPage } from "@/lib/pearl/server";
+import { livingPearl } from "@/lib/living/pearl";
+import { LivingPearl } from "@/components/living/LivingPearl";
+import { PearlWorld } from "@/components/living/PearlWorld";
+import { PearlSubstrate } from "@/components/living/PearlSubstrate";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ ref: string }> };
@@ -41,10 +45,13 @@ export default async function PortablePearl({ params }: Props) {
   if (r.errors.length) return <Problem id={parts.id} title="This Pearl does not validate." detail={r.errors.join(" ")} />;
   const page = await pearlPage(r.doc, { verifiedId: true });
   if (page.id !== parts.id) return <Problem id={parts.id} title="This Pearl's content does not match its id." detail={`The payload hashes to ${page.id}, not ${parts.id}. The link is corrupted or was edited; nothing from it is shown.`} />;
+  const record = livingPearl(page.pearl, { id: page.id, digest: page.digest, link: page.links.compact });
   return (
     <>
-      <SubstrateLayer data={{ page: "/p", kind: "pearl", id: page.id, digest: "sha256:" + page.digest, pearl: page.pearl, links: page.links, integrity: "payload hashes to its id" }} />
-      <PearlView {...page} source="from a portable link · payload hashes to its id" warnings={r.warnings} />
+      <SubstrateLayer data={{ page: "/p", kind: "pearl", id: page.id, digest: "sha256:" + page.digest, pearl: page.pearl, links: page.links, integrity: "payload hashes to its id", living: record }} />
+      <LivingPearl record={record} pearl={page.pearl} links={page.links} substrate={<PearlSubstrate pearl={page.pearl} record={record} links={page.links} />}>
+        <PearlView {...page} source="from a portable link · payload hashes to its id" warnings={r.warnings} world={<PearlWorld related={record.related} title={page.pearl.title} id={page.id} />} />
+      </LivingPearl>
     </>
   );
 }

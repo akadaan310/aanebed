@@ -8,6 +8,7 @@ import { LIMITS as X_LIMITS, REGISTRY } from "@/lib/address";
 import { OFFER, BLOCK_TYPES, CONTINUITY_TYPES, LIMITS as E_LIMITS, LIFE_EXAMPLE } from "@/content/compose";
 import { PEARL_TYPES } from "@/lib/experience";
 import { CAPABILITIES, ENGINES } from "@/lib/capabilities";
+import { COMMANDS } from "@/lib/living/commands";
 
 const abs = (p: string) => (p.startsWith("http") ? p : SITE.origin + p);
 
@@ -136,6 +137,16 @@ export function aiManifest() {
       },
       rules: OFFER.rules,
     },
+    living: {
+      what: "Pearls v2: a Pearl or a computational address is a living object. Its living record (living/1) lists its state and only its legal affordances; address-producing affordances carry the next address, which is itself valid. The human page and the JSON are the same record.",
+      record: abs("/api/v1/living?u={Pearl link | /x/… | /live/… address}"),
+      in_pearl_json: "GET /e.json?… includes the record under \"living\"",
+      live_pages: abs("/live/{address}"),
+      transition_model: "current address → command → next address → resolve → new state → value_sha256. A Pearl is immutable: FORK and REMIX make a new Pearl with from={parent id}.",
+      commands: COMMANDS.map((c) => ({ id: c.id, key: c.key, capability: c.capability, produces: c.produces })),
+      grammar_additions: { from: "optional parent Pearl id (forks and remixes); in the canonical form only when present, so no v1 id changes", choice: "choice:Question|Label>target|Label>target — transitions to other addressed objects on this site" },
+      safety: "No visitor-supplied code is executed. Every command maps to a registered pure operation or to the person's own click (copy, save in their browser).",
+    },
     capabilities: {
       registry: abs("/capabilities.json"),
       note: "Every operation listed runs on this site, is a pure GET, and is covered by tests. Operations not listed do not exist.",
@@ -181,6 +192,8 @@ export function llmsTxt(): string {
   L.push(`- Full grammar: ${abs("/compose")}`, "");
   L.push("## Machine interface", "");
   for (const e of MACHINE_ENTRYPOINTS) L.push(`- [${e.path}](${abs(e.path)}): ${e.purpose}`);
+  L.push("", "## Living objects (v2)", "");
+  L.push(`A Pearl or a computational address is a living object: it shows its state and only its legal moves. Open ${abs("/live/map/eca/90/8/state/5")}: NEXT, PERTURB, TRACE and ORBIT each lead to a new address that is itself valid. GET ${abs("/api/v1/living?u=/x/map/eca/90/8/state/5")} returns the same record the page renders (state, affordances with next addresses, history, evidence, explanation). Forks and remixes are new Pearls with from={parent id}; the original never changes. A choice: block (choice:Question|Label>target|…) offers transitions to other objects on this site.`, "");
   L.push("", "## Capabilities", "");
   L.push(`Operations this site performs for you by URL (all pure GETs; full registry at ${abs("/capabilities.json")}):`, "");
   for (const c of CAPABILITIES) L.push(`- **${c.id}**: ${c.purpose} Example: ${c.example}`);

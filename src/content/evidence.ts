@@ -199,6 +199,18 @@ export const EVIDENCE: EvidenceRecord[] = [
       "The reported 12-block link: every block, title, model, session and Arabizi entry survives parsing, serialisation, re-parsing, the portable /p/ link, library export and re-import, with a stable content id. Numbered blocks survive a key-sorting, de-duplicating fetcher (12 of 12); repeated b= does not (1 of 12). s= works with literal \n. A raw # and a bare & are recovered in pasted links. Forged and oversized portable payloads are rejected.",
     caveat: "Unit tests of the code paths; the live deployment is checked separately by the smoke test.",
   },
+  {
+    id: "E-016",
+    title: "Pearls v2: living objects, affordances, fork, remix and compare",
+    status: "TESTED",
+    observer: OBSERVER,
+    date: "2026-10-08",
+    repository: "site",
+    command: "npm test (tests/unit/living.test.ts, play.test.ts); npm run test:browser (the v2 journeys)",
+    result:
+      "Every address-producing affordance of the tested addresses is itself a resolvable address, including at the 12-operation limit; commands that are illegal for an object do not appear. NEXT on /map/eca/90/8/state/5 gives state 136. Fork and remix leave the original byte-identical and name it with from=; the owner's v1 Pearl keeps its v1.1.0 id (p_rg86c59j7jmqp0w1). /e.json and /api/v1/living return the same record the pages render. In a browser, the address changes with each command (on /live and in the homepage fragment), keyboard shortcuts work and ignore text fields, and pages pass axe WCAG 2.1 A/AA.",
+    caveat: "Tests of this site's code. That people (or AIs) find the living surface understandable is a design goal, not a measured result.",
+  },
 ];
 
 export function evidence(id: string): EvidenceRecord {
