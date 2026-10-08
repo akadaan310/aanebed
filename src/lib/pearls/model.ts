@@ -118,9 +118,9 @@ export const idOf = (p: Pearl) => "p_" + digest(p).slice(0, 12);
 
 /** What each contribution looks like to a person. */
 export function handLabel(h: Hand): string {
-  const who = h.by === "you" ? "you" : h.by === "model" ? modelName(h.model) : h.by === "pearls" ? "the Pearls team" : h.name ? `another AI (${h.name}, as it says)` : "another AI";
+  const who = h.by === "you" ? "a person" : h.by === "model" ? modelName(h.model) : h.by === "pearls" ? "the Pearls team" : h.name ? `another AI (${h.name}, as it says)` : "another AI";
   const verb = { made: "Made by", shaped: "Shaped by", edited: "Edited by", grown: "Grown by", continued: "Continued by" }[h.how];
-  return h.how === "made" && h.by === "you" ? "Born from your idea" : `${verb} ${who}`;
+  return h.how === "made" && h.by === "you" ? "Born from an idea" : `${verb} ${who}`;
 }
 export function modelName(id?: string): string {
   if (!id) return "an AI model";

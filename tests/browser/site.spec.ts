@@ -539,7 +539,7 @@ test("Pearls without AI: make from your own words, play it, keep it, give it to 
   await page.getByRole("button", { name: "Make a Pearl" }).click();
   await page.waitForURL(/\/pearl\/[A-Za-z0-9_-]+\?born=new$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Weekend bread plan");
-  await expect(page.getByText("Born from your idea", { exact: true })).toBeVisible();
+  await expect(page.getByText("Born from an idea", { exact: true })).toBeVisible();
   await page.getByRole("checkbox").first().check();
   await expect(page.getByText("1 of 3 done")).toBeVisible();
   const url = page.url().split("?")[0];
