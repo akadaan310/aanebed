@@ -42,12 +42,18 @@ V6 makes the machine disappear until someone wants to see it. The landing is a p
 |---|---|
 | Unit | 100 tests: 99 pass, 1 skipped (PostgreSQL), 0 fail. New: substrate adapter (fake of the documented API; compat verdicts equal a real run of the substrate's `validate.py`), the game engine |
 | Browser (desktop + Pixel 7) | 212 tests: 206 pass, 6 skipped (device-specific), 0 fail. axe WCAG 2.1 A/AA on every page including all V6 pages; the §66 stranger journey (touch, change, URL changes, Copy for AI, no account anywhere); the §54/§55 multi-AI game (you → "claude" → you → "gpt", lineage in the URL, names marked self-declared, garden remembers); refusals; make / loom / clock / report; the machine surface |
-| Ingress harness | see LIVE_INGRESS |
+| Ingress harness | questions 12/12 (1 skipped: POST /c returns 503 without a store), checks 26/26; the root-page readability strings were updated for the new landing |
 | Smoke | 48 checks, see below |
 
 ## Deployed
 
-LIVE_PLACEHOLDER
+Commit `3c33aa0` was deployed by Vercel to https://aanebed.vercel.app. Against the live origin:
+
+- smoke: **48/48** (`verification/smoke-live-v6.json`);
+- ingress: questions 12/12 (1 skipped), checks 26/26;
+- the V6 Playwright journeys (`BASE_URL=https://aanebed.vercel.app`, "V6"): **10 passed**, 0 failed.
+
+`/api/substrate/status` reports `not_configured` on this deployment, which is the true state (G1).
 
 ## Blocked (backend), with the exact contract needed
 
