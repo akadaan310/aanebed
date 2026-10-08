@@ -39,7 +39,9 @@ export const TYPE_INFO: Record<PearlTypeName, { label: string; does: string; sup
   workflow: { label: "Workflow", does: "Rendered as declarative steps and prompts. The site does not execute workflows.", support: "descriptive" },
   research: { label: "Research", does: "Rendered with each claim's asserted status. The site does not verify the claims.", support: "implemented" },
   computation: { label: "Computation", does: "Each computational address is resolved by this site's bounded /x registry and its value hash shown.", support: "implemented" },
-  collection: { label: "Collection", does: "Rendered as a list of Pearls on this site.", support: "implemented" },
+  collection: { label: "Collection", does: "Rendered as a list of Pearls on this site. Each reference is checked when opened; references are never expanded recursively.", support: "implemented" },
+  project: { label: "Project", does: "Rendered as a project: goal, decisions, open threads, next actions, resources and the Pearls it references.", support: "implemented" },
+  notes: { label: "Notes", does: "Rendered as notes and lists: recipes, study notes, ideas.", support: "implemented" },
 };
 
 export function inferType(doc: Experience): PearlTypeName {

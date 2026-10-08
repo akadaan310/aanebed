@@ -6,7 +6,7 @@
     "date": "2026-10-08",
     "given": "https://aanebed.vercel.app",
     "base_under_test": "local production build (next start), standing in for https://aanebed.vercel.app",
-    "requests": 53
+    "requests": 66
   },
   "baseline": {
     "evidence": "E-009",
@@ -17,7 +17,7 @@
       "n": 1,
       "question": "What can it discover?",
       "pass": true,
-      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 38 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 29 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
+      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 45 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 42 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
       "evidence": [
         "/",
         "/robots.txt",
@@ -28,7 +28,7 @@
       "n": 2,
       "question": "Can it find the machine-readable interface?",
       "pass": true,
-      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 17 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
+      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 18 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /capabilities.json, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
       "evidence": [
         "/.well-known/ai",
         "/research.json"
@@ -89,7 +89,7 @@
       "n": 8,
       "question": "Can it identify what it is permitted to execute?",
       "pass": true,
-      "answer": "Allowed, all GET: GET https://aanebed.vercel.app/*; GET https://aanebed.vercel.app/x/*; GET https://aanebed.vercel.app/e?*; GET https://aanebed.vercel.app/e.json?*; GET https://github.com/akadaan310/*. Forms: false. Credentials: false. The client ran the one permitted experiment: GET /x/map/eca/90/8/state/5/next → 200, value_sha256 sha256:6927c50af25fdd6efc33a935558b90535d1e6432eb49a829fbc6ea5042fdb8ad, independently recomputed: identical.",
+      "answer": "Allowed, all GET: GET https://aanebed.vercel.app/*; GET https://aanebed.vercel.app/x/*; GET https://aanebed.vercel.app/e?*; GET https://aanebed.vercel.app/e.json?*; GET https://aanebed.vercel.app/api/v1/*; GET https://github.com/akadaan310/*. Forms: false. Credentials: false. The client ran the one permitted experiment: GET /x/map/eca/90/8/state/5/next → 200, value_sha256 sha256:6927c50af25fdd6efc33a935558b90535d1e6432eb49a829fbc6ea5042fdb8ad, independently recomputed: identical.",
       "evidence": [
         "/.well-known/ai#/permissions",
         "/x/map/eca/90/8/state/5/next"
@@ -231,19 +231,19 @@
       "id": "sitemap-all-200",
       "group": "machine",
       "pass": true,
-      "detail": "29 URLs"
+      "detail": "42 URLs"
     },
     {
       "id": "canonical-urls",
       "group": "machine",
       "pass": true,
-      "detail": "21/21 HTML pages"
+      "detail": "33/33 HTML pages"
     },
     {
       "id": "every-page-has-machine-layer",
       "group": "machine",
       "pass": true,
-      "detail": "21/21 HTML pages embed #substrate-layer"
+      "detail": "33/33 HTML pages embed #substrate-layer"
     },
     {
       "id": "layers-match-manifest",
@@ -324,14 +324,25 @@
       "/ai",
       "/ai.txt",
       "/broadcast",
+      "/capabilities",
+      "/capabilities.json",
       "/compose",
       "/continue",
-      "/e",
+      "/create",
+      "/create/computation",
+      "/create/conversation",
+      "/create/creative",
+      "/create/handoff",
+      "/create/recipe",
+      "/create/research",
+      "/create/study",
+      "/create/workflow",
       "/e.json",
       "/experiments",
+      "/explore",
       "/llms.txt",
       "/manifest.json",
-      "/p/%7Bid%7D.%7Bpayload%7D",
+      "/p/p_1e55acfe5433k2b7.VZFNaxwxDIb_jXNQtnS2n3HxXraEFkopbKFn2dbGYj2yseVO5t-XmfSSm4TeR4JHulZyoYiyDNbVKGsm92u0lu9B-CkpFCHjV3fOOCKZTr1zERf29tBxPkzmWpq74Gz85JDtZYisxh9dGjOK3QfvnHC42TNWRRY4l3lmdUtChT0OAXPucMEZlkSyFz1x7YAKx23DeycDJZDdM42VOtwppTsoAnW0Wjq9sPQcWCl-AaG_1CCU1igosBr_wWV6tpoIYsOFmuNI2GEhqNhuFOFaGmRUasZ_dDPN9g-B4EwRNiigHmoqWgBrhd3Sdn0bXbl1fTFm_CcXKfDmyf7AISFtqcfGEVfjPztNjTDaRxbuaaeL-IItsjxBKHU1_sFh0I3_2vCqsBGvUokwZhbqxk9vXbLfKOdyD6_9Gj9NrtrfiTtwh932dk3oWeH_I6GnMnKEm5QF0JehMPob46eju-ay2O-R8PQTZzqdS11Pl8T1Hw",
       "/press",
       "/prompts",
       "/protocol",
@@ -345,17 +356,13 @@
       "/research/purl",
       "/research/seurl",
       "/research/substrate",
-      "/robots.txt",
       "/schemas/pearl-export.schema.json",
       "/schemas/pearl.schema.json",
       "/schemas/research-manifest.schema.json",
-      "/sitemap.xml",
+      "/spaces",
       "/verify",
       "/verify/ingress.json",
-      "/workspace",
-      "/x",
-      "/x/map/eca/30/16/state/256/trace/24",
-      "/x/map/eca/90/8/state/5/next"
+      "/workspace"
     ],
     "via_conventions": [
       "/robots.txt",

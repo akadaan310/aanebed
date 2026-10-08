@@ -1,6 +1,34 @@
 # Future persistence: from browser-local to shared
 
-Nothing here is implemented in this phase. No Supabase, no accounts, no environment variables.
+Shared persistence is **not active** on this deployment. No Supabase, no accounts, no required environment variables.
+
+## Assessment (2026-10-08)
+
+Checked through the Vercel API for the `aanebed` project:
+
+- Environment variables: **none**.
+- Connected storage: **none**. A Supabase marketplace integration is installed on the Vercel account but is **not connected** to this project, and the directive for this phase was not to connect it.
+- Julia runtime: none.
+
+Durable shared storage therefore cannot exist without an owner action. Embedding credentials in source to avoid environment variables was ruled out (it would publish them). Faking it (for example, an in-memory store presented as durable on serverless instances) was ruled out.
+
+## The shared Pearl store adapter (built, inactive)
+
+`src/lib/pearl/server-repository.ts` defines `PearlStore { put(pearl); get(id) }` and one implementation, `restKvStore`, over the Upstash / Vercel KV REST protocol (`GET {url}/get/{key}`, `POST {url}/set/{key}?nx=true`).
+
+- Content-addressed: the key is `pearl:v1:{id}`; the Pearl is re-validated with the one parser and re-hashed before every write and after every read. A stored record that does not hash to its key is treated as absent and never served.
+- Never overwrites (`nx`); a different Pearl under an existing id is reported as a conflict.
+- Size limit 64 KiB per record.
+- `getPearlStore()` returns `null` unless both `KV_REST_API_URL` and `KV_REST_API_TOKEN` are set. They are not set, and no route calls it.
+- Tested against an in-memory fake of the REST protocol in `tests/unit/capabilities.test.ts`, not against a real store.
+
+### Minimum owner action to activate it
+
+1. In Vercel → Storage, create (or connect) an Upstash Redis / KV store for the `aanebed` project. This sets `KV_REST_API_URL` and `KV_REST_API_TOKEN` as server-only environment variables; nothing is exposed to browser JavaScript.
+2. Approve a follow-up change that adds two routes: `POST /api/v1/pearl` (publish: the person's explicit click, rate-limited) and a lookup in `/p/{id}` for links without a payload.
+3. Redeploy. Until then `/p/{id}` without a payload stays honestly **Unavailable**.
+
+Publishing is public by construction (a content id is not access control), so the UI must say so before the first publish. Private sharing needs the Postgres model below.
 
 ## The seam that exists today
 

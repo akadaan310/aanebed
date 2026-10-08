@@ -33,10 +33,54 @@
   --ease-transition: cubic-bezier(0.2, 0.7, 0.1, 1);
 }
 
+/*
+ * Two surfaces, one token set.
+ *  - surface-product (default, on <body>): warm ivory paper, deep ink, one primary accent
+ *    (deep emerald) and gold used sparingly. Where people make and keep things.
+ *  - surface-research: the original dark editorial laboratory. Research and Explore.
+ * Components use the same tokens; the surface decides their values.
+ */
+.surface-product {
+  color-scheme: light;
+  --color-ground: #f7f2e8;
+  --color-panel: #fffcf6;
+  --color-raised: #efe8da;
+  --color-rule: #e2d9c7;
+  --color-rule-strong: #c9bda5;
+  --color-ink: #1d1b17;
+  --color-ink-2: #48433a;
+  --color-ink-3: #6b6457;
+  --color-emerald: #0e6b50;
+  --color-emerald-deep: #d5ebe1;
+  --color-gold: #8a5a06;
+  --color-gold-deep: #f3e3c0;
+  --color-refuse: #a8321d;
+}
+.surface-research {
+  color-scheme: dark;
+  --color-ground: #0c0d0c;
+  --color-panel: #121412;
+  --color-raised: #191c1a;
+  --color-rule: #262a27;
+  --color-rule-strong: #3a3f3b;
+  --color-ink: #eeeae1;
+  --color-ink-2: #bdb8ac;
+  --color-ink-3: #8f8b81;
+  --color-emerald: #74c39c;
+  --color-emerald-deep: #23493a;
+  --color-gold: #cdae68;
+  --color-gold-deep: #4a3d1f;
+  --color-refuse: #dc9583;
+}
+
+/* Simple | Explore: one data model, two presentations. Without JavaScript, Simple. */
+html:not([data-mode="explore"]) .explore-only { display: none !important; }
+html[data-mode="explore"] .simple-only { display: none !important; }
+
 @layer base {
   html {
-    color-scheme: dark;
-    background: var(--color-ground);
+    color-scheme: light;
+    background: #f7f2e8;
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 5rem;
   }
@@ -50,6 +94,7 @@
     text-rendering: optimizeLegibility;
   }
   ::selection { background: var(--color-emerald); color: var(--color-ground); }
+  .surface-product ::selection { background: #0e6b50; color: #fffcf6; }
   a { color: inherit; text-decoration-color: var(--color-rule-strong); text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
   a:hover { text-decoration-color: var(--color-emerald); }
   :focus-visible { outline: 2px solid var(--color-emerald); outline-offset: 3px; border-radius: 1px; }
@@ -84,7 +129,7 @@
   .panel-raised { background: var(--color-raised); border: 1px solid var(--color-rule-strong); }
 
   /* Machine output */
-  .machine { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; color: var(--color-ink-2); background: #0a0b0a; border: 1px solid var(--color-rule); padding: 1rem; overflow-x: auto; white-space: pre; tab-size: 2; }
+  .machine { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; color: var(--color-ink-2); background: color-mix(in srgb, var(--color-ground) 70%, var(--color-ink) 4%); border: 1px solid var(--color-rule); padding: 1rem; overflow-x: auto; white-space: pre; tab-size: 2; }
   .machine-wrap { white-space: pre-wrap; word-break: break-word; }
 
   /* Buttons and links that act */
@@ -97,7 +142,7 @@
   .arrow-link:hover { border-color: var(--color-emerald); color: var(--color-emerald); }
 
   /* Inputs */
-  .field { width: 100%; min-height: 2.75rem; background: #0a0b0a; border: 1px solid var(--color-rule-strong); color: var(--color-ink); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.75rem; }
+  .field { width: 100%; min-height: 2.75rem; background: var(--color-panel); border: 1px solid var(--color-rule-strong); color: var(--color-ink); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.75rem; }
   .field:focus-visible { outline: 2px solid var(--color-emerald); outline-offset: 0; }
 
   /* The substrate disclosure: the second representation of a heading */
@@ -133,4 +178,20 @@
 @media print {
   body { background: #fff; color: #000; }
   .no-print { display: none !important; }
+}
+
+/* Product components */
+@layer components {
+  .btn-solid { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.7rem 1.3rem; border-radius: 999px; background: var(--color-ink); color: var(--color-ground); font-weight: 500; font-size: 0.98rem; text-decoration: none; transition: transform 160ms var(--ease-transition), background 160ms var(--ease-transition); }
+  .btn-solid:hover { background: var(--color-emerald); }
+  .btn-solid:active { transform: translateY(1px); }
+  .btn-soft { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.7rem 1.3rem; border-radius: 999px; border: 1px solid var(--color-rule-strong); color: var(--color-ink); font-size: 0.98rem; text-decoration: none; background: transparent; }
+  .btn-soft:hover { border-color: var(--color-emerald); color: var(--color-emerald); }
+  .card { background: var(--color-panel); border: 1px solid var(--color-rule); border-radius: 1.1rem; }
+  .card-lift { transition: transform 220ms var(--ease-transition), box-shadow 220ms var(--ease-transition); }
+  .card-lift:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgb(40 30 10 / 0.35); }
+  .eyebrow { font-family: var(--font-sans); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-emerald); }
+  .keynote { font-family: var(--font-serif); font-weight: 400; font-size: clamp(2.8rem, 7.6vw, 6.6rem); line-height: 0.98; letter-spacing: -0.025em; }
+  .act { padding-block: clamp(4rem, 10vw, 8rem); }
+  .paper-glow { background: radial-gradient(60rem 30rem at 85% -10%, color-mix(in srgb, var(--color-gold-deep) 70%, transparent), transparent 60%), radial-gradient(50rem 26rem at -10% 110%, color-mix(in srgb, var(--color-emerald-deep) 80%, transparent), transparent 60%); }
 }

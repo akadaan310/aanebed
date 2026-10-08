@@ -7,7 +7,7 @@ import { repo } from "@/content/repositories";
 import { SubstrateLayer } from "@/components/Substrate";
 import { StatusBadge, TierMark } from "@/components/Status";
 import type { Tier } from "@/content/types";
-import results from "../../../verification/ingress-results.json";
+import results from "../../../../verification/ingress-results.json";
 
 export const metadata: Metadata = {
   title: "Verify",

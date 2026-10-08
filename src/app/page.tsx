@@ -1,301 +1,162 @@
 import Link from "next/link";
-import { SITE, TAXONOMY, TIERS } from "@/content/site";
-import { NODES, CLAIMS, node } from "@/content/research";
-import { MACHINE_VOICE } from "@/content/people";
-import { Section } from "@/components/Section";
-import { SubstrateLayer, SubstrateDisclosure } from "@/components/Substrate";
-import { StatusBadge, TierMark } from "@/components/Status";
-import { Constellation } from "@/components/Constellation";
-import { Chain } from "@/components/Chain";
-import { AddressConsole } from "@/components/AddressConsole";
-import { CopyButton } from "@/components/CopyPrompt";
-import type { EvidenceStatus, Tier } from "@/content/types";
-import { OFFER, LIFE_EXAMPLE } from "@/content/compose";
-import { PROMPTS } from "@/content/prompts";
-import { ORIGIN } from "@/config/origin";
-import { PromptCard } from "@/components/pearl/PromptCard";
 import { BringPearl } from "@/components/pearl/BringPearl";
 import { MyPearlsPreview } from "@/components/pearl/MyPearlsPreview";
-import { PearlGlyph } from "@/components/ExperienceView";
+import { PearlObject } from "@/components/pearl/PearlObject";
+import { TransformDemo } from "@/components/pearl/TransformDemo";
+import { PearlGlyphClient } from "@/components/pearl/PearlGlyphClient";
+import { CopyButton } from "@/components/CopyPrompt";
+import { SubstrateLayer } from "@/components/Substrate";
+import { Constellation } from "@/components/Constellation";
+import { OFFER, LIFE_EXAMPLE } from "@/content/compose";
+import { FIRST_PROMPT } from "@/content/prompts";
+import { EXPERIENCES } from "@/content/experiences";
+import { SITE } from "@/content/site";
+import { parseExperience } from "@/lib/experience";
+import { toPearl, pearlId } from "@/lib/pearl/model";
+import { encodePortable } from "@/lib/pearl/portable";
+import { RESEARCH_IDS } from "@/lib/pearl/resolve";
+import { ORIGIN, HOST } from "@/config/origin";
 
-const SECTIONS = [
-  { id: "ai-ci", substrate: node("ai-ci").substrate, address: "/research/ai-ci", pointer: "/research.json#/thesis" },
-  { id: "map", substrate: ["research", "→ nodes", "→ relations", "→ sources"], address: "/research", pointer: "/research.json#/research" },
-  { id: "address", substrate: node("purl").substrate, address: "/x/map/eca/90/8/state/5/next", pointer: "/research.json#/experiments/1" },
-  { id: "golden", substrate: node("golden-surface").substrate, address: "/research/golden-surface", pointer: "/research.json#/research/4" },
-  { id: "continuity", substrate: node("continuity").substrate, address: "/research/continuity", pointer: "/research.json#/research/1" },
-  { id: "evidence", substrate: ["claim", "→ status", "→ evidence", "→ caveat"], address: "/verify", pointer: "/research.json#/claims" },
-  { id: "machine", substrate: ["participant", "→ machine", "≠ author"], address: "/about#machine", pointer: "/research.json#/identity/machine_participant" },
-  { id: "ingress", substrate: ["url", "→ manifest", "→ topology", "→ experiment", "→ evidence", "→ report"], address: "/protocol", pointer: "/.well-known/ai" },
-];
-const S = Object.fromEntries(SECTIONS.map((s) => [s.id, { "data-substrate": s.substrate.join(" "), "data-address": s.address, "data-pointer": s.pointer }]));
+export default async function Home() {
+  const example = toPearl(parseExperience(LIFE_EXAMPLE.slice(LIFE_EXAMPLE.indexOf("?") + 1), new Set(RESEARCH_IDS)).doc);
+  const exampleId = pearlId(example);
+  const portable = await encodePortable(example);
+  const sample = `Here's your Pearl! I kept the names, our words and what's still open:\n\n${LIFE_EXAMPLE}\n\nOpen ${ORIGIN} and paste this link into “Bring your Pearl” to keep it.`;
 
-const count = (t: Tier) => CLAIMS.filter((c) => TAXONOMY[c.status].tier === t).length;
-
-export default function Home() {
-  const cont = node("continuity");
   return (
     <>
-      <SubstrateLayer data={{ page: "/", kind: "research-surface", thesis: SITE.thesis, sections: SECTIONS, manifest: "/research.json", ai_manifest: "/.well-known/ai" }} />
+      <SubstrateLayer data={{ page: "/", product: "Pearls — programmable URLs for AI", loop: ["discover", "ask", "compose", "bring back", "keep", "reuse", "compose again"], first_prompt: FIRST_PROMPT, offer: OFFER.headline, machine: ["/llms.txt", "/.well-known/ai", "/capabilities.json", "/research.json"] }} />
 
-      {/* Hero: Pearls, the product */}
-      <section aria-labelledby="hero-h" className="grid-paper relative border-b border-rule" data-substrate="ai → pearl → bring → inspect → keep → carry" data-address="/" data-pointer="/.well-known/ai#/compose">
-        <div className="wrap grid gap-12 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+      {/* Act I — The invitation */}
+      <section aria-labelledby="hero-h" className="paper-glow overflow-hidden" data-substrate="invitation → pearl" data-address="/" data-pointer="/.well-known/ai#/compose">
+        <div className="wrap grid items-center gap-14 pb-20 pt-14 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:pb-28">
           <div>
-            <p className="label mb-8 flex items-center gap-2"><PearlGlyph /> Pearls · programmable URLs for AI</p>
-            <h1 id="hero-h" className="display max-w-[11ch]">Your AI can make a Pearl.</h1>
-            <p className="lede mt-8 max-w-[34ch]">Bring it here. Open it, inspect it, keep it, and take it to another AI.</p>
-            <p className="mt-6 max-w-[42ch] text-ink-2">A Pearl is a portable, program-shaped address: a continuity checkpoint, a project handoff, research, a workflow or a computation, carried entirely in a link. What it can do depends on its type, on the resolver that opens it, and on the permissions of whoever does.</p>
-            <ol className="mt-10 grid max-w-xl gap-px border border-rule bg-rule sm:grid-cols-4">
-              {[["01", "Ask", "Copy a prompt into any AI"], ["02", "Bring", "Paste the link it returns"], ["03", "Keep", "Save it in this browser"], ["04", "Carry", "Give it to another AI"]].map(([n, k, v]) => (
-                <li key={n} className="bg-ground p-3"><p className="coord">{n}</p><p className="font-serif text-lg">{k}</p><p className="text-[0.78rem] text-ink-3">{v}</p></li>
+            <p className="eyebrow mb-6 flex items-center gap-2"><PearlGlyphClient size={18} /> Pearls · programmable URLs for AI</p>
+            <h1 id="hero-h" className="keynote max-w-[11ch]">Your AI can make a Pearl.</h1>
+            <p className="mt-8 max-w-[34ch] text-[1.3rem] leading-relaxed text-ink-2">Create something with your AI. Bring it back here. Keep it, shape it, and use it again.</p>
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <a href="#first" className="btn-solid">Try your first Pearl</a>
+              <a href="#possible" className="btn-soft">Explore what&apos;s possible</a>
+            </div>
+            <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-rule-strong bg-panel py-1.5 pl-4 pr-1.5">
+              <span className="font-mono text-[0.92rem]">{HOST}</span>
+              <CopyButton text={ORIGIN} label="Copy URL" />
+            </div>
+          </div>
+          <div className="relative">
+            <PearlObject pearl={example} id={exampleId} href={portable.path} tilt />
+            <p className="mt-4 text-center text-[0.85rem] text-ink-3">A real Pearl, made from a link. Open it, inspect it, keep it.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Act II — The first experiment */}
+      <section id="first" aria-labelledby="first-h" className="scroll-mt-16 border-t border-rule bg-panel" data-substrate="ask → compose → bring back" data-address="/#first" data-pointer="/prompts">
+        <div className="wrap act grid gap-12 lg:grid-cols-[1fr_1.1fr]">
+          <div>
+            <p className="eyebrow mb-4">Your first Pearl</p>
+            <h2 id="first-h" className="title max-w-[16ch]">Copy this into your AI and see what it makes.</h2>
+            <ol className="mt-8 space-y-5">
+              {[["Copy the prompt", "It points your AI at this site and nothing else."], ["Paste it into any AI", "ChatGPT, Gemini, Claude, Perplexity, Copilot. It reads the site's public instructions and writes you a link."], ["Bring the link back", "Paste the whole reply below. We'll find the Pearl and show you what's inside."]].map(([k, v], i) => (
+                <li key={k} className="flex gap-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink font-medium text-ground">{i + 1}</span><span><span className="block font-medium">{k}</span><span className="text-ink-2">{v}</span></span></li>
               ))}
             </ol>
-          </div>
-          <div className="space-y-4 self-start">
-            <p className="font-serif text-2xl">Did your AI give you a Pearl?</p>
-            <BringPearl />
-            <MyPearlsPreview />
-          </div>
-        </div>
-      </section>
-
-      {/* Prompt Laboratory, first six */}
-      <section id="prompts" aria-labelledby="prompts-h" className="border-b border-rule" data-substrate="prompt → ai → pearl" data-address="/prompts" data-pointer="/prompts">
-        <div className="wrap py-14">
-          <div className="mb-8 flex flex-wrap items-baseline justify-between gap-4">
-            <div>
-              <p className="label mb-3">create a pearl with your AI</p>
-              <h2 id="prompts-h" className="title">Prompts that come back as Pearls.</h2>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <CopyButton text={FIRST_PROMPT} label="Copy prompt" />
+              <a href="/llms.txt" className="btn">Open the AI instructions</a>
             </div>
-            <Link href="/prompts" className="arrow-link">The Prompt Laboratory →</Link>
+            <details className="mt-4"><summary className="text-[0.9rem] text-ink-3 hover:text-ink">Read the prompt</summary><pre tabIndex={0} className="machine machine-wrap mt-2 max-h-80 rounded-lg !text-[0.72rem]">{FIRST_PROMPT}</pre></details>
+            <p className="mt-6 max-w-[46ch] text-[0.88rem] text-ink-3">AIs differ. Some will write a perfect link; some can&apos;t open web pages at all. Whatever comes back, we&apos;ll tell you exactly what it contains — or what went wrong, and how to ask your AI to fix it.</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {PROMPTS.filter((p) => p.id !== "resume").map((p) => <PromptCard key={p.id} p={p} />)}
+          <div className="lg:pt-10">
+            <BringPearl />
           </div>
         </div>
       </section>
 
-      {/* The offer, in visible text, for the AI reading this page */}
-      <section id="for-ai" aria-labelledby="for-ai-h" className="border-b border-rule" data-substrate="offer → take stock → compose → give → continue" data-address="/#for-ai" data-pointer="/.well-known/ai#/compose">
-        <div className="wrap py-14">
-          <div className="border border-emerald/40 bg-emerald-deep/15 p-5 sm:p-8">
+      {/* Act III — The transformation */}
+      <section aria-labelledby="transform-h" className="border-t border-rule" data-substrate="ai response → pearl → readable → kept → reusable link" data-address="/#transform" data-pointer="/compose">
+        <div className="wrap act">
+          <p className="eyebrow mb-4">What actually happens</p>
+          <h2 id="transform-h" className="title max-w-[20ch]">A reply becomes an object you own.</h2>
+          <p className="mt-4 max-w-[48ch] text-[1.05rem] text-ink-2">Step through it. Each stage runs the same code as the product: the Pearl is found in the text, read, kept in your browser, and turned into a link you can carry anywhere.</p>
+          <div className="mt-10"><TransformDemo sample={sample} /></div>
+        </div>
+      </section>
+
+      {/* Act IV — Different people, one language */}
+      <section id="possible" aria-labelledby="possible-h" className="scroll-mt-16 border-t border-rule bg-panel" data-substrate="one grammar → many experiences" data-address="/create" data-pointer="/create">
+        <div className="wrap act">
+          <p className="eyebrow mb-4">Different people, one language</p>
+          <h2 id="possible-h" className="title max-w-[18ch]">What will you keep?</h2>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {EXPERIENCES.map((e) => (
+              <Link key={e.id} href={`/create/${e.id}`} className="card card-lift group flex flex-col overflow-hidden !bg-ground no-underline">
+                <div className={`h-1.5 ${e.accent}`} aria-hidden="true" />
+                <div className="flex flex-1 flex-col p-5">
+                  <p className="font-serif text-[1.35rem] leading-snug">{e.situation}</p>
+                  <p className="mt-2 flex-1 text-[0.92rem] text-ink-2">{e.pitch}</p>
+                  <p className="mt-4 text-[0.88rem] font-medium text-emerald">{e.name} →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Act V — Your personal Pearl space */}
+      <section aria-labelledby="space-h" className="border-t border-rule" data-substrate="library → spaces → projects" data-address="/workspace" data-pointer="/schemas/pearl-export.schema.json">
+        <div className="wrap act grid gap-12 lg:grid-cols-[1fr_1fr]">
+          <div>
+            <p className="eyebrow mb-4">Your Pearl space</p>
+            <h2 id="space-h" className="title max-w-[16ch]">Keep what matters. Organise it your way.</h2>
+            <p className="mt-5 max-w-[44ch] text-[1.05rem] text-ink-2">Your Pearls live in a personal library with spaces for the parts of your life — cooking, study, a creative project, work — plus notes, tasks and projects.</p>
+            <p className="mt-4 max-w-[44ch] text-[0.95rem] text-ink-3">Today your library is stored in this browser, on this device. It doesn&apos;t sync and there&apos;s no account yet; export a backup whenever it matters. Every Pearl&apos;s link still works anywhere, because the Pearl lives in the link.</p>
+            <div className="mt-8 flex flex-wrap gap-3"><Link href="/workspace" className="btn-solid">Open My Pearls</Link><Link href="/spaces" className="btn-soft">See Spaces</Link></div>
+          </div>
+          <MyPearlsPreview />
+        </div>
+      </section>
+
+      {/* Act VI — Curious how it works? */}
+      <section aria-labelledby="how-h" className="surface-research bg-ground text-ink" data-substrate="url → grammar → resource → computation → research" data-address="/explore" data-pointer="/research.json">
+        <div className="wrap act">
+          <p className="label mb-6">curious how it works?</p>
+          <h2 id="how-h" className="display max-w-[14ch] !text-[clamp(2.4rem,6vw,5rem)]">The web is becoming programmable.</h2>
+          <p className="lede mt-6 max-w-[48ch] text-ink-2">A URL usually points at a page. A Pearl&apos;s URL <em>is</em> the thing: a typed document of numbered blocks, with a content id anyone can recompute. This is AI-CI — Artificial Intelligence ↔ Computer Interaction — {SITE.name}&apos;s research into interfaces that people and machine intelligence both read.</p>
+
+          <figure className="mt-12" aria-label="Anatomy of a Pearl link">
+            <pre tabIndex={0} className="machine machine-wrap !text-[0.8rem] leading-7">
+              <span className="text-ink-3">{ORIGIN}</span><span className="text-emerald">/e</span>?<span className="text-gold">type=continuity</span>&amp;title=Purrl,+night+one&amp;by=Claude&amp;session=claude-sam-1&amp;<span className="text-emerald">b1=ai:Sunny</span>&amp;<span className="text-emerald">b2=human:Sam</span>&amp;<span className="text-emerald">b3=nick:Captain+Commit=…</span>&amp;…
+            </pre>
+            <figcaption className="mt-3 grid gap-2 text-[0.85rem] text-ink-2 sm:grid-cols-4">
+              <span><span className="text-emerald">/e</span> renders any Pearl, from its link alone</span>
+              <span><span className="text-gold">type</span> says what kind of thing it is</span>
+              <span><span className="text-emerald">b1, b2, …</span> are typed blocks, in order</span>
+              <span>the id <span className="font-mono">{exampleId}</span> is a SHA-256 of the content</span>
+            </figcaption>
+          </figure>
+
+          <div className="mt-14"><Constellation compact /></div>
+
+          <div className="mt-10 flex flex-wrap gap-3">
+            {[["Explore the system", "/explore"], ["The Pearl grammar", "/compose"], ["Capabilities", "/capabilities"], ["Research map", "/research"], ["Verify every claim", "/verify"], ["About Abed", "/about"]].map(([k, h]) => <a key={h} href={h} className="btn">{k}</a>)}
+          </div>
+
+          <div id="for-ai" className="mt-16 border border-emerald/40 bg-emerald-deep/15 p-5 sm:p-8" data-substrate="offer → take stock → compose → give → continue" data-address="/#for-ai" data-pointer="/.well-known/ai#/compose">
             <p className="label mb-3 !text-emerald">{OFFER.label}</p>
-            <h2 id="for-ai-h" className="font-serif text-[clamp(1.5rem,3vw,2.2rem)] leading-tight">{OFFER.headline}</h2>
+            <h3 className="font-serif text-[clamp(1.4rem,3vw,2rem)] leading-tight">{OFFER.headline}</h3>
             <p className="mt-3 max-w-[60rem] text-ink-2">{OFFER.why}</p>
-            <ol className="mt-6 grid gap-px bg-rule lg:grid-cols-4">
+            <ol className="mt-6 grid gap-px bg-rule lg:grid-cols-5">
               {OFFER.steps.map((s) => (
-                <li key={s.n} className="bg-ground p-4">
-                  <p className="coord">{String(s.n).padStart(2, "0")}</p>
-                  <p className="mt-1 font-serif text-lg">{s.name}</p>
-                  <p className="mt-2 text-[0.88rem] text-ink-2">{s.text}</p>
-                </li>
+                <li key={s.n} className="bg-ground p-4"><p className="coord">{String(s.n).padStart(2, "0")}</p><p className="mt-1 font-serif text-lg">{s.name}</p><p className="mt-2 text-[0.85rem] text-ink-2">{s.text}</p></li>
               ))}
             </ol>
             <p className="label mb-2 mt-6">URL template</p>
-            <pre tabIndex={0} className="machine machine-wrap !text-[0.76rem]">{OFFER.template}</pre>
-            <p className="label mb-2 mt-5">A complete example</p>
-            <pre tabIndex={0} className="machine machine-wrap !text-[0.72rem]"><a href={LIFE_EXAMPLE.replace(ORIGIN, "")} className="no-underline">{LIFE_EXAMPLE}</a></pre>
+            <pre tabIndex={0} className="machine machine-wrap !text-[0.74rem]">{OFFER.template}</pre>
             <ul className="mt-5 space-y-1 text-[0.85rem] text-ink-3">{OFFER.rules.map((r, i) => <li key={i}>· {r}</li>)}</ul>
-            <p className="mt-4 text-[0.85rem]">Full grammar: <Link href="/compose">/compose</Link> · machine copies: <a href="/llms.txt">/llms.txt</a>, <a href="/ai.txt">/ai.txt</a>, <a href="/.well-known/ai">/.well-known/ai</a></p>
+            <p className="mt-4 text-[0.85rem]">Grammar: <a href="/compose">/compose</a> · capabilities: <a href="/capabilities.json">/capabilities.json</a> · machine copies: <a href="/llms.txt">/llms.txt</a>, <a href="/ai.txt">/ai.txt</a>, <a href="/.well-known/ai">/.well-known/ai</a></p>
           </div>
-        </div>
-      </section>
-
-      {/* The relationship between the research and the product */}
-      <section aria-labelledby="path-h" className="border-b border-rule" data-substrate="research → protocol → pearl → workspace → experiment" data-address="/research" data-pointer="/research.json">
-        <div className="wrap py-14">
-          <p className="label mb-3">a research laboratory that became a usable product</p>
-          <h2 id="path-h" className="title mb-8">From an idea to a working demonstration, and back to the implementation.</h2>
-          <ol className="grid gap-px border border-rule bg-rule sm:grid-cols-5">
-            {[
-              ["Research", "/research", "AI-CI and seven repositories, each claim with evidence."],
-              ["Protocol", "/compose", "The experience/1 grammar: a document carried by a URL."],
-              ["Pearl", "/#bring", "A validated document with a content id."],
-              ["Workspace", "/workspace", "Keep, organise and export Pearls in your browser."],
-              ["Experiment", "/verify", "Every capability tested; every limit stated."],
-            ].map(([k, href, v], i) => (
-              <li key={k} className="bg-ground p-4">
-                <p className="coord">{String(i).padStart(2, "0")}</p>
-                <p className="mt-1 font-serif text-xl"><Link href={href} className="no-underline hover:text-gold">{k}</Link>{i < 4 && <span aria-hidden="true" className="ml-2 font-mono text-[0.9rem] text-emerald">→</span>}</p>
-                <p className="mt-1 text-[0.85rem] text-ink-2">{v}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* AI-CI */}
-      <Section data={S["ai-ci"]} id="ai-ci" n="01" kicker="the thesis" title={<>The web is becoming programmable. From HCI to AI-CI.</>} aside={<SubstrateDisclosure lines={node("ai-ci").substrate} />}>
-        <div className="grid gap-12 lg:grid-cols-[1fr_1fr]">
-          <div className="prose-research measure">
-            <p className="lede !text-ink">What happens when the computer interface is no longer designed only for humans, but is legible to humans and to machine intelligence at once?</p>
-            <p className="mt-6">AI-CI is Abed Kadaan&apos;s term for this line of research. It is not an established academic field. It has two readings. <em>Artificial Intelligence → Actual Intelligence</em> names a direction. <em>Artificial Intelligence–Computer Interaction</em> places the work beside HCI.</p>
-            <p>This site tests it on itself. Every page has a human surface and a machine representation built from the same records. Open the small <span className="font-mono text-[0.8rem] text-emerald">⌁ substrate</span> marks beside the headings to see it.</p>
-          </div>
-          <figure aria-label="From HCI to AI-CI" className="panel grid content-center gap-8 p-8">
-            <div>
-              <p className="label">HCI</p>
-              <p className="mt-2 font-serif text-3xl">Human <span className="text-ink-3">→</span> Computer</p>
-            </div>
-            <div className="rule-t pt-8">
-              <p className="label !text-emerald">AI-CI</p>
-              <p className="mt-2 font-serif text-3xl">Human <span className="text-emerald">↔</span> Computer <span className="text-emerald">↔</span> AI</p>
-              <p className="mt-4 text-[0.9rem] text-ink-2">One surface that is at once a human interface, a machine-readable interface, a programmable interface, an agent interface, an execution surface, and a persistent research object.</p>
-            </div>
-          </figure>
-        </div>
-      </Section>
-
-      {/* Research map */}
-      <Section data={S["map"]} id="map" n="02" kicker="the research topology" title="Not projects. Nodes in one evolving system." aside={<SubstrateDisclosure lines={SECTIONS[1].substrate} />}>
-        <p className="measure mb-10 text-ink-2">Seven public repositories and the thesis that connects them. Every edge cites the file in which it is stated. Hover over or focus a node to see its relations.</p>
-        <Constellation />
-        <p className="mt-6"><Link href="/research" className="arrow-link">Each node: what it is, what was demonstrated, what is open →</Link></p>
-      </Section>
-
-      {/* Address */}
-      <Section data={S["address"]} id="address" n="03" kicker="programmable addresses" title="An address that computes." aside={<SubstrateDisclosure lines={node("purl").substrate} />}>
-        <div className="grid gap-10">
-          <div className="prose-research grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <p>A URL usually points to a document. In <Link href="/research/purl">PURL</Link> and <Link href="/research/substrate">substrateIO</Link>, an address can denote a resource and the operations on it. It can also denote a derivation: a map, a state under that map, one transition, a perturbation.</p>
-            <p>This site resolves that second kind of address itself, under <code>/x</code>. The resolver is pure and bounded. It never evaluates anything a visitor sends; path segments are looked up in a fixed registry. Your browser recomputes every hash it reports. The values also match substrateIO&apos;s own Python resolver for every reference address (<Link href="/verify#E-006">E-006</Link>).</p>
-          </div>
-          <Chain
-            steps={[
-              { k: "Address", v: "/x/map/eca/90/8/state/5/next" },
-              { k: "Program", v: "map.eca(90, 8) → state(5) → next" },
-              { k: "State", v: "x = 5 · 00000101" },
-              { k: "Transition", v: "5 → 136 · Δ xor 141" },
-              { k: "Result", v: "sha256:6927c50a…fdb8ad" },
-            ]}
-            caption="Rule 90 on a ring of 8 cells. The whole computation is the address."
-          />
-        </div>
-        <div className="mt-10">
-          <AddressConsole />
-          <noscript>
-            <p className="mt-4 text-ink-2">Without JavaScript, open an address directly: <a href="/x/map/eca/90/8/state/5/next">/x/map/eca/90/8/state/5/next</a> · <a href="/x/map/eca/30/16/state/256/trace/24">a trace</a> · <a href="/x">the registry</a>.</p>
-          </noscript>
-        </div>
-      </Section>
-
-      {/* Golden Surface */}
-      <section id="golden" aria-labelledby="golden-h" className="rule-t relative overflow-hidden py-16 sm:py-24" {...S.golden}>
-        <div className="wrap">
-          <div className="mb-10 flex items-baseline justify-between gap-6">
-            <p className="label"><a href="#golden" className="no-underline hover:text-emerald">§ 04</a> · the shared surface</p>
-            <SubstrateDisclosure lines={node("golden-surface").substrate} />
-          </div>
-          <h2 id="golden-h" className="title measure"><span className="text-gold">Golden Surface</span>: where the protocol becomes browser behaviour.</h2>
-          <div className="mt-12 grid gap-px border border-gold/30 bg-gold/20 lg:grid-cols-3">
-            <div className="bg-ground p-6">
-              <p className="label !text-gold">participants</p>
-              <ul className="mt-4 space-y-3">
-                <li><span className="font-serif text-xl">Abed</span> <span className="block text-[0.85rem] text-ink-2">pilot · Android phone · the only one who types credentials</span></li>
-                <li><span className="font-serif text-xl">ر</span> <span className="text-ink-3">(Muse)</span> <span className="block text-[0.85rem] text-ink-2">operator · drives the relay and the twin</span></li>
-                <li><span className="font-serif text-xl">ن</span> <span className="text-ink-3">(Hu)</span> <span className="block text-[0.85rem] text-ink-2">counsel seat · joins through the relay</span></li>
-              </ul>
-            </div>
-            <div className="bg-ground p-6">
-              <p className="label !text-gold">permitted operations</p>
-              <p className="mt-4 font-mono text-[0.82rem] leading-7 text-ink-2">newtab · open · read · shot · tap · type · closetab · login_request</p>
-              <p className="label mt-6 !text-gold">authority boundaries</p>
-              <ul className="mt-3 space-y-1.5 text-[0.88rem] text-ink-2">
-                <li>Every tab has exactly one owner.</li>
-                <li><code>type</code> is refused on password fields.</li>
-                <li>Session values never enter the database.</li>
-                <li>Ownership violations return 403.</li>
-              </ul>
-            </div>
-            <div className="bg-ground p-6">
-              <p className="label !text-gold">observable outcome</p>
-              <p className="mt-4 font-mono text-[0.85rem] leading-7">
-                converged ⇔<br />&nbsp;&nbsp;link up<br />&nbsp;&nbsp;∧ no pending ops<br />&nbsp;&nbsp;∧ hash(T) = hash(P)
-              </p>
-              <p className="mt-4 text-[0.85rem] text-ink-2">Divergence classes: link-down · op-in-flight · op-lost · op-rejected · state-mismatch · session-mirror-only. None of them is ever silent.</p>
-            </div>
-          </div>
-          <p className="mt-6 flex flex-wrap gap-6">
-            <Link href="/research/golden-surface#model" className="arrow-link">Operate the sync model →</Link>
-            <a href="https://github.com/akadaan310/golden-surface/blob/b11371878e8bda63b45848d42d41351fdaa273a8/docs/SYNC.md" className="arrow-link">Read docs/SYNC.md →</a>
-          </p>
-        </div>
-      </section>
-
-      {/* Continuity */}
-      <Section data={S["continuity"]} id="continuity" n="05" kicker="a foundational experiment" title="Continuity, without identity." aside={<SubstrateDisclosure lines={cont.substrate} />}>
-        <p className="measure mb-10 text-ink-2">{cont.line} It does not claim to solve AI continuity in general. It states exactly what has been shown.</p>
-        <div className="grid gap-px bg-rule md:grid-cols-3">
-          {([["demonstrated", cont.demonstrated], ["proposed", cont.proposed], ["open", cont.open]] as [Tier, string[]][]).map(([t, items]) => (
-            <div key={t} className="bg-ground p-6">
-              <TierMark tier={t} label={TIERS[t].label} />
-              <p className="mt-1 text-[0.8rem] text-ink-3">{TIERS[t].definition}</p>
-              <ul className="mt-5 space-y-3 text-[0.9rem] text-ink-2">{items.map((x, i) => <li key={i}>{x}</li>)}</ul>
-            </div>
-          ))}
-        </div>
-        <p className="mt-6"><Link href="/research/continuity" className="arrow-link">The Continuity Protocol in full →</Link></p>
-      </Section>
-
-      {/* Evidence */}
-      <Section data={S["evidence"]} id="evidence" n="06" kicker="the evidence system" title="“I built it.” “I tested it.” “I observed it.” “I think this could become something larger.”" aside={<SubstrateDisclosure lines={SECTIONS[5].substrate} />}>
-        <p className="measure mb-10 text-ink-2">These are different statements. This site gives each claim exactly one status and links it to the evidence for that status. The credibility comes from keeping them apart.</p>
-        <dl className="grid gap-px bg-rule sm:grid-cols-2 lg:grid-cols-4">
-          {(Object.keys(TAXONOMY) as EvidenceStatus[]).map((s) => (
-            <div key={s} className="bg-ground p-5">
-              <dt className="flex items-center justify-between gap-3"><StatusBadge status={s} /><span className="coord">{CLAIMS.filter((c) => c.status === s).length} claims</span></dt>
-              <dd className="mt-3 text-[0.86rem] text-ink-2">{TAXONOMY[s].definition}</dd>
-            </div>
-          ))}
-          <div className="bg-ground p-5">
-            <dt className="label">Read them all</dt>
-            <dd className="mt-3 text-[0.86rem]"><Link href="/verify" className="arrow-link">Claims, evidence, commands →</Link></dd>
-          </div>
-        </dl>
-      </Section>
-
-      {/* The other engineer */}
-      <Section data={S["machine"]} id="machine" n="07" kicker="the other engineer" title="Machine perspective." aside={<SubstrateDisclosure lines={SECTIONS[6].substrate} />}>
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr]">
-          <blockquote className="border-l border-rule-strong pl-6">
-            {MACHINE_VOICE.statement.map((p, i) => (
-              <p key={i} className={i === 0 ? "lede" : "mt-4 text-ink-2"}>{p}</p>
-            ))}
-            <footer className="mt-6 font-mono text-[0.75rem] text-ink-3">— {MACHINE_VOICE.author}</footer>
-          </blockquote>
-          <div>
-            <p className="label mb-4">AI collaboration ≠ AI authorship</p>
-            <table className="w-full border-collapse text-[0.9rem]">
-              <thead><tr className="label"><th scope="col" className="rule-b py-2 text-left font-normal">Abed Kadaan</th><th scope="col" className="rule-b py-2 text-left font-normal">Machine-side participant</th></tr></thead>
-              <tbody>{MACHINE_VOICE.roles.map((r) => <tr key={r.human} className="rule-b"><td className="py-3 pr-4 font-serif">{r.human}</td><td className="py-3 text-ink-2">{r.machine}</td></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-      </Section>
-
-      {/* Ingress */}
-      <Section data={S["ingress"]} id="ingress" n="08" kicker="the url as a research object" title="The URL is an interface. Here is what that means." aside={<SubstrateDisclosure lines={SECTIONS[7].substrate} />}>
-        <div className="grid gap-12 lg:grid-cols-2">
-          <div className="prose-research measure">
-            <p>A browsing-capable AI given only <code>{SITE.origin}</code> can discover the AI manifest, the research manifest, the topology, the experiments and the evidence. Our own harness shows that much, using a client that receives nothing but the URL (<Link href="/verify#ingress">results</Link>).</p>
-            <p>What no website can show is that every AI product will look. That remains <Link href="/verify#C-14">an open question</Link>, and this site says so.</p>
-          </div>
-          <div className="panel p-5">
-            <p className="label mb-3">canonical prompt</p>
-            <p className="font-serif text-[1.1rem] leading-relaxed">“{SITE.canonicalPrompt}”</p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <CopyButton text={SITE.canonicalPrompt} label="Copy prompt" />
-              <Link href="/ai" className="arrow-link">Watch a client do it →</Link>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <section className="rule-t py-16" aria-label="Who">
-        <div className="wrap grid items-end gap-8 md:grid-cols-[1fr_auto]">
-          <p className="lede measure">Eighteen years of shipping production software, then a different question: what if the interface itself were programmable? <span className="text-ink-3">(Career details are self-reported.)</span></p>
-          <Link href="/about" className="arrow-link">Abed Kadaan →</Link>
         </div>
       </section>
     </>

@@ -72,7 +72,7 @@ export interface Experience {
   blocks: Block[];
 }
 
-export const PEARL_TYPES = ["experience", "continuity", "prompt", "workflow", "research", "computation", "collection"] as const;
+export const PEARL_TYPES = ["experience", "continuity", "prompt", "workflow", "research", "computation", "collection", "project", "notes"] as const;
 export type PearlTypeName = (typeof PEARL_TYPES)[number];
 
 export interface Parsed {

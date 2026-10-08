@@ -19,10 +19,18 @@ const isJson = (want = 200): Check => (r) => (r.status !== want ? `status ${r.st
 const isHtml = (want = 200, must?: string): Check => (r) => (r.status !== want ? `status ${r.status}` : !r.type.includes("html") ? `type ${r.type}` : must && !r.body.includes(must) ? `missing “${must}”` : null);
 
 const CASES: { name: string; path: string; check: Check }[] = [
-  { name: "home", path: "/", check: isHtml(200, "Bring your Pearl") },
+  { name: "home", path: "/", check: isHtml(200, "Your AI can make a Pearl") },
   { name: "compose", path: "/compose", check: isHtml(200) },
   { name: "prompts", path: "/prompts", check: isHtml(200) },
   { name: "workspace", path: "/workspace", check: isHtml(200) },
+  { name: "create", path: "/create", check: isHtml(200, "Conversation Keeper") },
+  { name: "create/recipe", path: "/create/recipe", check: isHtml(200, "Recipe Space") },
+  { name: "spaces", path: "/spaces", check: isHtml(200) },
+  { name: "explore", path: "/explore", check: isHtml(200, "The web is becoming programmable") },
+  { name: "capabilities", path: "/capabilities", check: isHtml(200, "hash.sha256") },
+  { name: "capabilities.json", path: "/capabilities.json", check: (r) => isJson()(r) ?? (r.json.engines?.find((e: { id: string }) => e.id === "julia")?.status !== "not available" ? "julia must be listed as not available" : null) },
+  { name: "hash capability", path: "/api/v1/hash?text=hello", check: (r) => isJson()(r) ?? (r.json.sha256 !== "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" ? "wrong digest" : null) },
+  { name: "text capability", path: "/api/v1/text/slug?text=Hello+World", check: (r) => isJson()(r) ?? (r.json.result !== "hello-world" ? `result ${r.json.result}` : null) },
   { name: "research.json", path: "/research.json", check: (r) => isJson()(r) ?? (r.json.identity?.url !== ORIGIN ? `identity.url = ${r.json.identity?.url}` : null) },
   { name: "verify/ingress.json", path: "/verify/ingress.json", check: isJson() },
   { name: "llms.txt", path: "/llms.txt", check: (r) => (r.status !== 200 ? `status ${r.status}` : !r.body.includes(ORIGIN + "/e?") ? "no link to the active origin" : /abedkadaan\.com\/(e|compose|c)\b/.test(r.body) ? "links to the old domain" : null) },

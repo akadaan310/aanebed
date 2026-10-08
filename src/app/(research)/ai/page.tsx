@@ -6,7 +6,7 @@ import { INGRESS } from "@/content/experiments";
 import { SubstrateLayer } from "@/components/Substrate";
 import { IngressDemo } from "@/components/IngressDemo";
 import { CopyButton } from "@/components/CopyPrompt";
-import results from "../../../verification/ingress-results.json";
+import results from "../../../../verification/ingress-results.json";
 
 export const metadata: Metadata = {
   title: "AI Laboratory",

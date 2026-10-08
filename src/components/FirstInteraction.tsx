@@ -71,7 +71,7 @@ export function FirstInteraction() {
   return (
     <aside
       aria-label="Substrate trace: the machine layer under the section in view"
-      className="no-print motion-reveal fixed bottom-3 left-3 z-30 hidden max-w-[min(30rem,calc(100vw-1.5rem))] border border-rule-strong bg-ground/95 p-3 font-mono text-[0.7rem] leading-relaxed text-ink-2 shadow-[0_0_0_1px_#0c0d0c] sm:block"
+      className="explore-only no-print motion-reveal fixed bottom-3 left-3 z-30 hidden max-w-[min(30rem,calc(100vw-1.5rem))] border border-rule-strong bg-ground/95 p-3 font-mono text-[0.7rem] leading-relaxed text-ink-2 shadow-[0_0_0_1px_#0c0d0c] sm:block"
     >
       <div className="mb-1.5 flex items-center justify-between gap-4">
         <span className="text-ink-3">substrate layer · this page has a second representation</span>

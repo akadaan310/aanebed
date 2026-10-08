@@ -6,6 +6,8 @@ import { REPOSITORIES, blob, repo } from "@/content/repositories";
 import { CAREER, CAREER_NOTE, CAREER_SOURCE, MACHINE_VOICE } from "@/content/people";
 import { LIMITS as X_LIMITS, REGISTRY } from "@/lib/address";
 import { OFFER, BLOCK_TYPES, CONTINUITY_TYPES, LIMITS as E_LIMITS, LIFE_EXAMPLE } from "@/content/compose";
+import { PEARL_TYPES } from "@/lib/experience";
+import { CAPABILITIES, ENGINES } from "@/lib/capabilities";
 
 const abs = (p: string) => (p.startsWith("http") ? p : SITE.origin + p);
 
@@ -119,7 +121,7 @@ export function aiManifest() {
         id: "p_ + first 80 bits of sha256(canonical JSON of the Pearl), lower-case Crockford base32",
         check: abs("/e.json?{same query}"),
         portable: abs("/p/{id}.{payload}"),
-        types: ["experience", "continuity", "prompt", "workflow", "research", "computation", "collection"],
+        types: [...PEARL_TYPES],
         protocol_document: "https://github.com/akadaan310/aanebed/blob/HEAD/docs/architecture/PEARL_PROTOCOL.md",
       },
       continuity_brain: {
@@ -134,6 +136,12 @@ export function aiManifest() {
       },
       rules: OFFER.rules,
     },
+    capabilities: {
+      registry: abs("/capabilities.json"),
+      note: "Every operation listed runs on this site, is a pure GET, and is covered by tests. Operations not listed do not exist.",
+      operations: CAPABILITIES.map((c) => ({ id: c.id, url: c.url, purpose: c.purpose })),
+      engines: ENGINES.map((e) => ({ id: e.id, status: e.status })),
+    },
     entrypoints: MACHINE_ENTRYPOINTS.map((e) => ({ ...e, url: abs(e.path) })),
     protocol: { steps: INGRESS.steps, report: INGRESS.report },
     permissions: {
@@ -142,6 +150,7 @@ export function aiManifest() {
         { method: "GET", scope: SITE.origin + "/x/*", note: "Pure, bounded computational addresses.", limits: X_LIMITS, operations: REGISTRY.map((o) => o.id) },
         { method: "GET", scope: SITE.origin + "/e?*", note: "Compose a Pearl for the person; nothing is stored." },
         { method: "GET", scope: SITE.origin + "/e.json?*", note: "Check a Pearl link before giving it to the person." },
+        { method: "GET", scope: SITE.origin + "/api/v1/*", note: "The pure operations in /capabilities.json (hash, text, Pearl decode)." },
         { method: "GET", scope: "https://github.com/akadaan310/*", note: "Read the public repositories listed in /research.json." },
       ],
       not_allowed: EXPERIMENTS.find((e) => e.id === "X-INGRESS")!.forbidden,
@@ -172,6 +181,9 @@ export function llmsTxt(): string {
   L.push(`- Full grammar: ${abs("/compose")}`, "");
   L.push("## Machine interface", "");
   for (const e of MACHINE_ENTRYPOINTS) L.push(`- [${e.path}](${abs(e.path)}): ${e.purpose}`);
+  L.push("", "## Capabilities", "");
+  L.push(`Operations this site performs for you by URL (all pure GETs; full registry at ${abs("/capabilities.json")}):`, "");
+  for (const c of CAPABILITIES) L.push(`- **${c.id}**: ${c.purpose} Example: ${c.example}`);
   L.push("", "## Research", "");
   for (const n of NODES) L.push(`- [${n.name}](${abs(`/research/${n.id}`)}): ${n.line}${n.repository && n.repository !== "site" ? ` Repository: ${repo(n.repository).url}` : ""}`);
   L.push("", "## Experiments", "");
@@ -212,7 +224,8 @@ export function aiTxt(): string {
   L.push(`  - GET any page or file on ${SITE.origin}`);
   L.push(`  - GET ${SITE.origin}/x/... computational addresses (pure, bounded: n <= ${X_LIMITS.maxBits}, steps <= ${X_LIMITS.maxTraceSteps})`);
   L.push(`  - Compose ${SITE.origin}/e?... for the person (see /compose)`);
-  L.push(`  - Read ${SITE.origin}/c/<code> when given it, and write back with ${SITE.origin}/c/<code>/w?... with the person's knowledge`);
+  L.push(`  - GET the operations listed in ${SITE.origin}/capabilities.json (hash, text, Pearl decode, computation)`);
+  L.push(`  - Read ${SITE.origin}/c/<code> when given it, and write back with ${SITE.origin}/c/<code>/w?... with the person's knowledge (only where durable storage is enabled; it is not on this deployment)`);
   L.push("  - Read the public repositories listed in /research.json");
   L.push("");
   L.push("WHAT YOU MAY NOT DO");

@@ -25,7 +25,9 @@
         "workflow",
         "research",
         "computation",
-        "collection"
+        "collection",
+        "project",
+        "notes"
       ]
     },
     "title": {

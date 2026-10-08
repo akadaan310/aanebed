@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header, Footer } from "@/components/Chrome";
 import { JsonLd } from "@/components/Substrate";
 import { FirstInteraction } from "@/components/FirstInteraction";
+import { MODE_BOOT } from "@/components/ModeSwitch";
 import { SITE } from "@/content/site";
 import { REPOSITORIES } from "@/content/repositories";
 
@@ -13,7 +14,7 @@ const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variabl
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.origin),
-  title: { default: "Abed Kadaan — The web is becoming programmable", template: "%s · Abed Kadaan" },
+  title: { default: "Pearls — your AI can make a Pearl", template: "%s · Pearls" },
   description: `${SITE.oneSentence} A public research surface for AI-CI: Artificial Intelligence ↔ Computer Interaction.`,
   applicationName: "Abed Kadaan — research surface",
   authors: [{ name: SITE.name, url: SITE.origin }],
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   other: { "ai-manifest": "/.well-known/ai", "research-manifest": "/research.json" },
 };
 
-export const viewport: Viewport = { themeColor: "#0c0d0c", colorScheme: "dark", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#f7f2e8", colorScheme: "light", width: "device-width", initialScale: 1 };
 
 const graph = {
   "@context": "https://schema.org",
@@ -82,13 +83,14 @@ const graph = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <head>
         <link rel="alternate" type="application/json" href="/.well-known/ai" title="AI manifest" />
         <link rel="describedby" type="application/json" href="/research.json" />
+        <script dangerouslySetInnerHTML={{ __html: MODE_BOOT }} />
         <JsonLd data={graph} />
       </head>
-      <body>
+      <body className="surface-product bg-ground text-ink">
         <Header />
         <main id="main" tabIndex={-1} className="focus:outline-none">{children}</main>
         <Footer />

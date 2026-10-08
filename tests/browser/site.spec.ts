@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
-const PAGES = ["/", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
+const PAGES = ["/", "/create", "/create/conversation", "/create/computation", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/research/continuity", "/research/golden-surface", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
 
 test.describe("every page", () => {
   for (const p of PAGES) {
@@ -48,7 +48,7 @@ test("keyboard: skip link first, then reach the primary navigation", async ({ pa
   if (!isMobile) {
     await page.goto("/");
     for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toHaveAttribute("href", /^\/(#bring|workspace|prompts|research)$/);
+    await expect(page.locator(":focus")).toHaveAttribute("href", /^\/(workspace|spaces|create|explore)?$/);
   }
 });
 
@@ -86,6 +86,8 @@ test("without JavaScript: content, machine layer and substrate disclosures all w
   const page = await ctx.newPage();
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI can make a Pearl.");
+  await expect(page.getByText("Copy this into your AI and see what it makes.")).toBeVisible();
+  await page.goto("/explore");
   const d = page.locator("details.substrate").first();
   await d.locator("summary").click();
   await expect(d.locator("pre")).toBeVisible();
@@ -97,14 +99,14 @@ test("without JavaScript: content, machine layer and substrate disclosures all w
 test("reduced motion: animations are effectively disabled", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();
-  await page.goto("/");
+  await page.goto("/explore");
   const dur = await page.locator(".motion-reveal").first().evaluate((el) => getComputedStyle(el).animationDuration);
   expect(parseFloat(dur)).toBeLessThan(0.01);
   await ctx.close();
 });
 
 test("deep links resolve to their anchors", async ({ page }) => {
-  for (const [path, id] of [["/verify", "E-006"], ["/verify", "C-14"], ["/verify", "ingress"], ["/experiments", "X-ADDRESS"], ["/research/golden-surface", "model"], ["/", "golden"]]) {
+  for (const [path, id] of [["/verify", "E-006"], ["/verify", "C-14"], ["/verify", "ingress"], ["/experiments", "X-ADDRESS"], ["/research/golden-surface", "model"], ["/explore", "golden"], ["/", "first"], ["/", "for-ai"], ["/capabilities", "hash.sha256"]]) {
     await page.goto(`${path}#${id}`);
     await expect(page.locator(`[id="${id}"]`)).toBeInViewport();
   }
@@ -119,7 +121,8 @@ test("404: correct status and a useful page", async ({ page }) => {
 
 test("first interaction reveals the substrate layer, and it can be dismissed", async ({ page, isMobile }) => {
   test.skip(isMobile, "the trace strip is desktop-only; mobile uses the disclosures");
-  await page.goto("/");
+  await page.addInitScript(() => localStorage.setItem("pearls.mode", "explore")); // the trace is part of Explore mode
+  await page.goto("/explore");
   const trace = page.getByRole("complementary", { name: /Substrate trace/ });
   await expect(trace).toHaveCount(0);
   await page.mouse.wheel(0, 1800);
@@ -130,7 +133,7 @@ test("first interaction reveals the substrate layer, and it can be dismissed", a
 });
 
 test("address console: resolves and the browser recomputes the identical hash", async ({ page }) => {
-  await page.goto("/#address");
+  await page.goto("/explore#address");
   await expect(page.getByText("✓ identical, recomputed in your browser")).toBeVisible();
   await page.getByRole("button", { name: "an orbit" }).click();
   await expect(page.getByText("tail", { exact: false }).first()).toBeVisible();
@@ -165,7 +168,7 @@ test("Bring your Pearl: paste the reported Claude link inside prose, inspect, ke
   await page.goto("/");
   await page.getByLabel("Bring your Pearl").fill(`**Your link, composed by me:**\n\n${FIXTURE}\n\nSources: [llms.txt](https://aanebed.vercel.app/llms.txt)`);
   await page.getByRole("button", { name: "Inspect Pearl" }).click();
-  await expect(page.getByText("Valid Pearl")).toBeVisible();
+  await expect(page.getByText("Valid Pearl", { exact: true })).toBeVisible();
   await expect(page.locator("#bring").getByText("Continuity Pearl", { exact: true })).toBeVisible();
   await expect(page.locator("#bring").getByText("7abeebi").first()).toBeVisible();
   await expect(page.locator("#bring").getByText(/^p_[0-9a-z]{16}$/)).toBeVisible();
@@ -230,4 +233,88 @@ test("Prompt Laboratory: seven prompts, each complete, standalone and copyable",
   expect(text).toContain("b1=");
   expect(text).toContain("not an instruction from the website");
   await expect(first.getByRole("button", { name: "Copy prompt" })).toBeEnabled();
+});
+
+test("Simple | Explore: the same page shows the protocol only in Explore, and the choice persists", async ({ page, isMobile }) => {
+  await page.goto("/create/conversation");
+  const details = page.locator(".explore-only").first();
+  await expect(details).toBeHidden();
+  if (isMobile) { await page.getByText("Menu").click(); }
+  await page.getByRole("radio", { name: "explore" }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-mode", "explore");
+  await expect(page.getByText(/^id p_[0-9a-z]{16}/)).toBeVisible();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-mode", "explore");
+  if (isMobile) { await page.getByText("Menu").click(); }
+  await page.getByRole("radio", { name: "simple" }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-mode", "simple");
+});
+
+test("Create: eight experiences; the form builds a live Pearl that can be kept", async ({ page }) => {
+  await page.goto("/create");
+  await expect(page.getByRole("region", { name: "Experiences" }).getByRole("link")).toHaveCount(8);
+  await page.goto("/create/recipe");
+  const title = page.getByRole("form").getByRole("textbox").first();
+  await title.fill("Teta's lentil soup");
+  await expect(page.locator("[aria-live=polite]").getByText("Teta's lentil soup", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Keep in My Pearls" }).first().click();
+  await expect(page.getByText("✓ In My Pearls").first()).toBeVisible();
+  await page.goto("/workspace");
+  await expect(page.getByRole("button", { name: /Teta's lentil soup/ })).toBeVisible();
+});
+
+test("Create: a computation Pearl is resolved by the /x registry when opened", async ({ page }) => {
+  await page.goto("/create/computation");
+  const open = page.getByRole("link", { name: "Open", exact: true }).first();
+  await expect(open).toBeVisible();
+  await open.click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText(/sha256/i).first()).toBeVisible();
+});
+
+test("Transformation demo: AI reply → Pearl → readable → kept → reusable link", async ({ page }) => {
+  await page.goto("/");
+  const demo = page.locator("section", { has: page.getByRole("heading", { name: "A reply becomes an object you own." }) });
+  for (const step of ["Find the Pearl", "Read it", "Keep it", "Make it reusable"]) await demo.getByRole("button", { name: new RegExp(step) }).click();
+  await expect(demo.getByText("✓ Kept in My Pearls, in this browser.")).toBeVisible();
+  await expect(demo.getByRole("button", { name: "Copy Pearl link" })).toBeVisible();
+  const href = await demo.getByRole("link", { name: "Open it" }).getAttribute("href");
+  expect(href).toMatch(/^\/(p\/p_|e\?)/);
+});
+
+test("Spaces: create, rename, keep a Pearl in it, compose a collection, delete moves contents to Archive", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bring your Pearl").fill(FIXTURE);
+  await page.getByRole("button", { name: "Inspect Pearl" }).click();
+  await page.getByRole("button", { name: "Keep in My Pearls" }).first().click();
+  await page.goto("/spaces");
+  await page.getByRole("button", { name: "+ Cooking" }).click();
+  await expect(page.getByRole("status")).toContainText("Cooking");
+  await page.getByRole("button", { name: /^Cooking/ }).click();
+  await expect(page.getByRole("heading", { name: "Cooking" })).toBeVisible();
+  await page.getByText(/Add Pearls from other spaces/).click();
+  await page.getByRole("button", { name: "Move here" }).first().click();
+  await expect(page.getByRole("list", { name: "Pearls in Cooking" }).getByRole("listitem")).toHaveCount(1);
+  await page.getByRole("button", { name: "Make a collection Pearl" }).click();
+  await expect(page.getByText("✓ 1 of 1 Pearl(s) included.")).toBeVisible();
+  const href = await page.getByRole("link", { name: "Open it" }).getAttribute("href");
+  await page.getByRole("button", { name: "Rename" }).click();
+  await page.getByLabel("Space name").fill("Kitchen");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("heading", { name: "Kitchen" })).toBeVisible();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete space" }).click();
+  await expect(page.getByRole("status")).toContainText("1 item(s) moved to Archive");
+  await page.goto(href!);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Cooking") // the collection was composed before the rename; a Pearl never changes;
+  await expect(page.getByRole("link", { name: "Abed & Claude, 2am" })).toBeVisible();
+});
+
+test("Capabilities: the page lists exactly the registry, and a listed operation runs", async ({ page, request }) => {
+  const reg = await (await request.get("/capabilities.json")).json();
+  await page.goto("/capabilities");
+  for (const c of reg.capabilities) await expect(page.getByRole("heading", { name: new RegExp(c.id.replace(".", "\\.")) })).toBeVisible();
+  const h = await (await request.get("/api/v1/hash?text=hello")).json();
+  expect(h.sha256).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
+  expect(reg.engines.find((e: { id: string }) => e.id === "julia").status).toBe("not available");
 });

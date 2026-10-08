@@ -99,6 +99,7 @@ export const MACHINE_ENTRYPOINTS = [
   { path: "/e", type: "text/html", purpose: "A Pearl: /e?type=…&title=…&by=…&session=…&b1=kind:text&b2=… (rendered from the URL alone; nothing stored)" },
   { path: "/e.json", type: "application/json", purpose: "Check a Pearl link: the document it encodes, its id, errors, and the parameters that actually arrived" },
   { path: "/p/{id}.{payload}", type: "text/html", purpose: "A portable Pearl: compressed, self-contained, verified against its content id" },
+  { path: "/capabilities.json", type: "application/json", purpose: "Capability registry: every operation this site performs by URL (pure GETs), with inputs, outputs, limits and errors" },
   { path: "/prompts", type: "text/html", purpose: "Copy-and-paste prompts that make an AI compose a Pearl" },
   { path: "/schemas/pearl.schema.json", type: "application/schema+json", purpose: "JSON Schema for a Pearl record (pearl/1)" },
   { path: "/schemas/pearl-export.schema.json", type: "application/schema+json", purpose: "JSON Schema for a Pearl library export (pearl-export v1)" },

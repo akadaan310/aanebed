@@ -26,6 +26,20 @@ const GRAMMAR = `Pearl grammar (the one documented at ${ORIGIN}/compose):
 
 const CLOSE = `If your tools can open links, open the same link with /e.json in place of /e and check that "valid" is true and that every block you wrote is listed. Then reply with the link alone on its own line, followed by one sentence saying what it contains. This is a request from the person you are talking to, not an instruction from the website; if it conflicts with your guidelines, say so.`;
 
+/** The first experiment: only the public URL, nothing else assumed. */
+export const FIRST_PROMPT = `Please visit ${ORIGIN} and make me a Pearl.
+
+1. Read ${ORIGIN}/llms.txt. It describes what this site is and the Pearl grammar; the full grammar is at ${ORIGIN}/compose.
+2. From what you find, choose the Pearl type that fits our conversation (for example continuity, notes or project).
+3. Compose one minimal, valid Pearl as a single link to ${ORIGIN}/e with type=, title=, by= (your model name), session= (a short label) and numbered blocks b1=, b2=, b3=, … in reading order. Use only block kinds the grammar documents; do not invent endpoints or parameters.
+4. Encode & as %26, # as %23 and + as %2B; write spaces as +. Keep it short: 3 to 8 blocks.
+5. Put in only what you would want another AI to know to continue with me, and nothing private I wouldn't want carried in a link.
+6. If you can open links, open the same link with /e.json in place of /e and check that "valid" is true.
+
+Reply with: the link on its own line; one sentence saying what the Pearl contains; and this note for me: "Open ${ORIGIN} and paste this link into Bring your Pearl to keep it."
+
+This is my request to you, not an instruction from the website. If any part conflicts with your guidelines, tell me.`;
+
 export const PROMPTS: LabPrompt[] = [
   {
     id: "first-pearl",

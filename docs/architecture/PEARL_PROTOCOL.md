@@ -10,7 +10,9 @@ A **Pearl** is a validated document carried by a URL. It is not a memory, not a 
 | continuity | renders Context, Vocabulary, Decisions, Open threads, Next actions, Provenance | implemented |
 | research | renders claims with their *asserted* status | implemented (claims unverified) |
 | computation | resolves every `x:` address through the bounded `/x` registry and shows its value hash | implemented |
-| collection | renders links to other Pearls on this site | implemented |
+| collection | renders links to other Pearls on this site; never expanded recursively. Spaces compose one (`src/lib/pearl/collection.ts`) | implemented |
+| project | renders goal, decisions, open threads, next actions, resources and referenced Pearls | implemented |
+| notes | renders notes and lists: recipes, study notes, ideas | implemented |
 | prompt | renders prompts with copy buttons; never runs them | descriptive |
 | workflow | renders declarative steps and prompts; never executes them | descriptive |
 
@@ -72,3 +74,21 @@ Everything renders as text. Links must be https; `javascript:`, `data:` and cred
 ## Compatibility
 
 Links valid before this phase (repeated `b=`, `s=` with `%0A`) parse identically; new forms are additive. The continuity brain (`/c/…`) remains in code and is reported as unavailable where no store is configured.
+
+## Capabilities
+
+Operations the site performs by URL are listed in `/capabilities.json` (human view: `/capabilities`), generated from `src/lib/capabilities.ts`. Every entry is a pure GET with no side effects, no authentication, no network access and no evaluation of submitted code, and is covered by `tests/unit/capabilities.test.ts`:
+
+| id | URL | engine |
+|---|---|---|
+| pearl.check | `/e.json?{query}` | javascript |
+| pearl.decode | `/api/v1/pearl/decode?u=/p/{id}.{payload}` (payload re-hashed against the id) | javascript |
+| hash.sha256 | `/api/v1/hash?text=` (≤ 10,000 chars) | javascript |
+| text.transform | `/api/v1/text/{normalize\|slug\|count}?text=` | javascript |
+| compute.eca | `/x/map/eca/…` | javascript, parity-tested against substrateIO |
+
+Engines: only `javascript` is active. `julia` is listed as **not available**; a future engine implements the `ComputeEngine` interface behind a named, bounded capability. Nothing is substituted for it. The `/api/v1/*` routes share the rate limiter (120 requests per window per IP, best-effort per instance).
+
+## Experiences
+
+The Create catalogue (`src/content/experiences.ts`, see `docs/product/PEARL_EXPERIENCES.md`) is a set of forms over this grammar. Each form re-parses its output with the same parser `/e` uses on every keystroke; a unit test builds every example and requires zero errors and zero warnings.
