@@ -26,8 +26,15 @@ export interface CloneState {
   opened: boolean; rejections: { at: string; missing: string[]; problems: string[] }[];
   clone: (ReturnType<typeof classify> & { received_at: string; verified_at: string; pearl_id: string; digest: string; payload_hash: string }) | null;
   children: { token: string; kind: Kind; at: string }[];
+  /** A real AI this server invited in (Anthropic API). OBSERVED by this server: model id returned by the API, usage, stop reason, cost, the raw reply. */
+  visitor: Visitor | null;
   events: CloneEvent[];
 }
+export interface VisitorReply { attempt: number; final: boolean; at: string; model_observed: string; message_id: string; stop_reason: string; input_tokens: number; output_tokens: number; cost_micro_usd: number; ms: number; reply: string }
+export interface Visitor { provider: "anthropic"; model: string; label: string; invited_at: string; ask: string | null; read_parent: string | null; replies: VisitorReply[]; failed: string | null; state: "visiting" | "answered" | "failed" | "lost" }
+export type Channel = "direct-get" | "direct-post" | "relayed-by-person" | "anthropic-api";
+/** A visit with no reply after this long is reported as lost (the server function ended before the AI answered). */
+export const VISIT_LOST_MS = 120_000;
 export class CloneError extends Error { constructor(public status: number, public code: string, message: string, public details: Record<string, unknown> = {}) { super(message); } }
 
 const B32 = "0123456789abcdefghjkmnpqrstvwxyz";
@@ -36,7 +43,7 @@ export function randomToken(prefix: string, chars: number): string {
   return prefix + [...b].map((x) => B32[x & 31]).join("");
 }
 export const TOKEN = /^c_[0-9abcdefghjkmnpqrstvwxyz]{26}$/;
-const keyOf = { meta: (t: string) => `clones/${t}/meta.json`, ev: (t: string, s: number) => `clones/${t}/events/${String(s).padStart(6, "0")}.json`, evs: (t: string) => `clones/${t}/events/`, lock: (t: string) => `clones/${t}/lock/verified`, snap: (t: string, s: number) => `clones/${t}/snapshots/${String(s).padStart(6, "0")}.json`, tomb: (t: string) => `tombs/${t}.json`, root: (t: string) => `clones/${t}/` };
+const keyOf = { meta: (t: string) => `clones/${t}/meta.json`, ev: (t: string, s: number) => `clones/${t}/events/${String(s).padStart(6, "0")}.json`, evs: (t: string) => `clones/${t}/events/`, lock: (t: string) => `clones/${t}/lock/verified`, invited: (t: string) => `clones/${t}/lock/invited`, snap: (t: string, s: number) => `clones/${t}/snapshots/${String(s).padStart(6, "0")}.json`, tomb: (t: string) => `tombs/${t}.json`, root: (t: string) => `clones/${t}/` };
 
 /** A continuity Pearl (pearl/1) of the clone: its content id names exactly this clone record. Built from declared/captured parts only. */
 export function clonePearl(p: ClonePayload, token: string): Pearl {
@@ -103,7 +110,7 @@ export class CloneMachine {
 
   async state(token: string, upTo?: number): Promise<CloneState> {
     if (!TOKEN.test(token)) throw new CloneError(404, "not_found", "That is not a clone address.");
-    if (await this.kv.read(keyOf.tomb(token))) return { token, status: "DELETED", kind: "origin", parent: null, created_at: "", expires_at: null, sequence: 0, head: null, opened: false, rejections: [], clone: null, children: [], events: [] };
+    if (await this.kv.read(keyOf.tomb(token))) return { token, status: "DELETED", kind: "origin", parent: null, created_at: "", expires_at: null, sequence: 0, head: null, opened: false, rejections: [], clone: null, children: [], visitor: null, events: [] };
     const meta = await this.meta(token);
     if (!meta) throw new CloneError(404, "not_found", "No Pearl lives at this address.");
     const all = await this.events(token);
@@ -117,7 +124,15 @@ export class CloneMachine {
     await this.append(token, "PROTOCOL_READ", { how }, "non-browser client (heuristic)");
   }
 
-  async submit(token: string, raw: unknown, channel: "direct-get" | "direct-post" | "relayed-by-person"): Promise<{ status: number; outcome: "verified" | "duplicate" | "incomplete"; state: CloneState; missing?: string[]; problems?: string[] }> {
+  async isOwner(token: string, ownerKey: unknown): Promise<boolean> {
+    const meta = await this.meta(token);
+    return !!meta && typeof ownerKey === "string" && sha256(ownerKey) === meta.owner_hash;
+  }
+
+  /** One invitation per address, ever: create-if-absent, so two clicks or two tabs cannot both spend. */
+  async claimInvitation(token: string, model: string): Promise<boolean> { return this.kv.create(keyOf.invited(token), model); }
+
+  async submit(token: string, raw: unknown, channel: Channel): Promise<{ status: number; outcome: "verified" | "duplicate" | "incomplete"; state: CloneState; missing?: string[]; problems?: string[] }> {
     const bytes = new TextEncoder().encode(JSON.stringify(raw ?? null)).length;
     if (bytes > LIMITS.payloadBytes) throw new CloneError(413, "too_large", `The response is ${bytes} bytes; at most ${LIMITS.payloadBytes}. Summarise long conversations into context.`);
     let s = await this.state(token);
@@ -164,12 +179,15 @@ export class CloneMachine {
 }
 
 export function fold(meta: Meta, events: CloneEvent[], now: Date): CloneState {
-  const s: CloneState = { token: meta.token, status: "WAITING", kind: meta.kind, parent: meta.parent, created_at: meta.created_at, expires_at: new Date(Date.parse(meta.created_at) + meta.ttl_days * 864e5).toISOString(), sequence: 0, head: null, opened: false, rejections: [], clone: null, children: [], events };
+  const s: CloneState = { token: meta.token, status: "WAITING", kind: meta.kind, parent: meta.parent, created_at: meta.created_at, expires_at: new Date(Date.parse(meta.created_at) + meta.ttl_days * 864e5).toISOString(), sequence: 0, head: null, opened: false, rejections: [], clone: null, children: [], visitor: null, events };
   let payload: ClonePayload | null = null, received_at = "", channel = "";
   for (const e of events) {
     s.sequence = e.sequence; s.head = e.hash;
     const p = e.payload as Record<string, Json>;
-    if (e.type === "PROTOCOL_READ") { s.opened = true; if (s.status === "WAITING") s.status = "OPENED"; }
+    if (e.type === "PROTOCOL_READ" || e.type === "INVITED") { s.opened = true; if (s.status === "WAITING") s.status = "OPENED"; }
+    if (e.type === "INVITED") s.visitor = { provider: "anthropic", model: String(p.model), label: String(p.label), invited_at: e.at, ask: (p.ask as string) ?? null, read_parent: (p.read_parent as string) ?? null, replies: [], failed: null, state: "visiting" };
+    if (e.type === "VISITOR_REPLIED" && s.visitor) { s.visitor.replies.push(p as unknown as VisitorReply); if (p.final) s.visitor.state = "answered"; }
+    if (e.type === "VISITOR_FAILED" && s.visitor) { s.visitor.failed = String(p.reason); s.visitor.state = "failed"; }
     if (e.type === "RESPONSE_REJECTED") s.rejections.push({ at: e.at, missing: (p.missing as string[]) ?? [], problems: (p.problems as string[]) ?? [] });
     if (e.type === "RESPONSE_RECEIVED") { s.status = "RECEIVED"; payload = p.payload as unknown as ClonePayload; received_at = e.at; channel = String(p.channel); }
     if (e.type === "VERIFIED" && payload) {
@@ -180,6 +198,7 @@ export function fold(meta: Meta, events: CloneEvent[], now: Date): CloneState {
   }
   if ((s.status === "WAITING" || s.status === "OPENED") && s.expires_at && now.getTime() > Date.parse(s.expires_at)) s.status = "EXPIRED";
   if (s.status === "ALIVE") s.expires_at = null;
+  if (s.visitor?.state === "visiting" && now.getTime() - Date.parse(s.visitor.invited_at) > VISIT_LOST_MS) s.visitor.state = "lost";
   return s;
 }
 

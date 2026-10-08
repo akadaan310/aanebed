@@ -2,7 +2,7 @@
   "name": "abedkadaan-research-surface",
   "version": "1.1.0",
   "private": true,
-  "description": "abedkadaan.com \u2014 the public research surface of Abed Kadaan (AI-CI, programmable URLs, continuity, Golden Surface, substrate).",
+  "description": "abedkadaan.com — the public research surface of Abed Kadaan (AI-CI, programmable URLs, continuity, Golden Surface, substrate).",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20.9"
@@ -22,6 +22,7 @@
     "test:clone": "tsx scripts/clone-e2e.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@vercel/blob": "^2.8.1",
     "next": "16.3.8",
     "react": "19.2.0",

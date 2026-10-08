@@ -1,7 +1,7 @@
 /** The append-only event chain: event_hash = sha256(previous_hash + canonical(event body)). */
 import { canonical, sha256, type Json } from "../canonical";
 
-export type EventType = "CREATED" | "PROTOCOL_READ" | "RESPONSE_RECEIVED" | "RESPONSE_REJECTED" | "VERIFIED" | "CONTINUED" | "FORKED";
+export type EventType = "CREATED" | "PROTOCOL_READ" | "RESPONSE_RECEIVED" | "RESPONSE_REJECTED" | "VERIFIED" | "CONTINUED" | "FORKED" | "INVITED" | "VISITOR_REPLIED" | "VISITOR_FAILED";
 export interface EventBody { sequence: number; type: EventType; at: string; source: string; payload: Json }
 export interface CloneEvent extends EventBody { previous_hash: string; hash: string }
 

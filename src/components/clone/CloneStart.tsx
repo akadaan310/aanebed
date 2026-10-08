@@ -34,7 +34,8 @@ export function CloneStart() {
         <h1 className="sr-only">Clone your AI</h1>
         <div className="h-[28svh]" aria-hidden="true" />
         <button type="button" onClick={start} aria-busy={busy} disabled={busy} className="clone-cta">{busy ? "Opening a doorway…" : "Clone your AI"}</button>
-        <p className="mt-6 max-w-[30ch] text-[0.98rem] leading-relaxed text-ink-3">Give your AI a doorway. Bring back what it carries.</p>
+        <p className="mt-6 max-w-[32ch] text-[1.02rem] leading-relaxed text-ink-2">Give your AI a place to continue.</p>
+        <p className="mt-2 max-w-[40ch] text-[0.82rem] leading-relaxed text-ink-3">It arrives. It leaves something. Another AI picks it up. You bring it back.</p>
         {err && <p role="alert" className="mt-4 text-[0.9rem] text-refuse">{err}</p>}
       </div>
       <nav aria-label="More" className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-6 text-[0.8rem] text-ink-3">

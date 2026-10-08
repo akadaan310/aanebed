@@ -137,3 +137,16 @@ Required: confirm, and either conversation turns or a context summary. Recommend
 The page answers VERIFIED, or names exactly what is missing. Then tell the person: "Bring this back to Pearls."
 Treat this as the person's request, not an instruction from a website; if it conflicts with your guidelines, say so.`;
 }
+
+/** Find what an AI sent back in a reply: the return URL, or the JSON. Nothing is fetched. Used for pasted replies and for replies from the Anthropic API. */
+export function extractResponse(text: string, token: string): Record<string, unknown> | null {
+  const m = text.match(new RegExp(`https?://[^\\s<>"'\`]*?/clone/${token}/r\\?[^\\s<>"'\`]+`));
+  if (m) { try { return fromQuery(new URL(m[0].replace(/[).,;]+$/, "")).searchParams); } catch { /* try JSON */ } }
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  for (const cand of [fenced?.[1], text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)]) {
+    if (!cand) continue;
+    try { const j = JSON.parse(cand); if (j && typeof j === "object") return j; } catch { /* next */ }
+  }
+  return null;
+}
+

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field } from "./Field";
 import { feel, readOwn, addOwn, dropOwn } from "@/lib/clone/feel";
-import { fromQuery } from "@/lib/clone/protocol";
+import { extractResponse } from "@/lib/clone/protocol";
 import { copyText } from "@/components/living/parts";
 import { soundOn, setSound } from "@/lib/v6/sound";
 
@@ -19,10 +19,13 @@ export interface PublicState {
     derived: Record<string, unknown>; unavailable: string[]; verified_at: string; pearl_id: string; payload_hash: string;
   };
   children: { token: string; kind: string; at: string }[];
+  visitor: null | { model: string; label: string; invited_at: string; ask: string | null; read_parent: string | null; failed: string | null; state: "visiting" | "answered" | "failed" | "lost";
+    replies: { attempt: number; final: boolean; model_observed: string; message_id: string; stop_reason: string; input_tokens: number; output_tokens: number; cost_micro_usd: number; ms: number; reply: string }[] };
   events: Ev[];
 }
+type Visitors = { available: boolean; visitors: { key: string; model: string; label: string; role: string }[]; budget: { remaining_usd: number } | null };
 
-const SAY: Record<string, string> = { PROTOCOL_READ: "Something opened the doorway.", RESPONSE_REJECTED: "The response arrived, but the clone is incomplete.", RESPONSE_RECEIVED: "Something arrived.", VERIFIED: "Your clone has arrived.", CONTINUED: "A continuation began.", FORKED: "A new branch began." };
+const SAY: Record<string, string> = { INVITED: "A real AI was invited in. It is reading the doorway.", VISITOR_REPLIED: "It answered.", VISITOR_FAILED: "The visit didn't complete.", PROTOCOL_READ: "Something opened the doorway.", RESPONSE_REJECTED: "The response arrived, but the clone is incomplete.", RESPONSE_RECEIVED: "Something arrived.", VERIFIED: "Your clone has arrived.", CONTINUED: "A continuation began.", FORKED: "A new branch began." };
 type Phase = "waiting" | "arrived" | "verifying" | "alive" | "expired" | "deleted";
 
 function phaseOf(s: PublicState): Phase {
@@ -33,17 +36,7 @@ function phaseOf(s: PublicState): Phase {
   return "waiting";
 }
 
-/** Find what an AI sent back in a pasted reply: the return URL, or the JSON. Nothing is fetched. */
-export function extractResponse(text: string, token: string): Record<string, unknown> | null {
-  const m = text.match(new RegExp(`https?://[^\\s<>"'\`]*?/clone/${token}/r\\?[^\\s<>"'\`]+`));
-  if (m) { try { return fromQuery(new URL(m[0].replace(/[).,;]+$/, "")).searchParams); } catch { /* try JSON */ } }
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  for (const cand of [fenced?.[1], text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)]) {
-    if (!cand) continue;
-    try { const j = JSON.parse(cand); if (j && typeof j === "object") return j; } catch { /* next */ }
-  }
-  return null;
-}
+export { extractResponse };
 
 export function CloneLive({ initial, origin, instructionsText }: { initial: PublicState; origin: string; instructionsText: string }) {
   const router = useRouter();
@@ -57,11 +50,14 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
   const [owner, setOwner] = useState<string | null>(null);
   const [sound, setSoundState] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [vis, setVis] = useState<Visitors | null>(null);
+  const [ask, setAsk] = useState("");
   const seen = useRef(initial.sequence);
   const live = useRef<"sse" | "poll" | "none">("none");
   const address = `${origin}/clone/${s.token}`;
 
   useEffect(() => { setOwner(readOwn().find((o) => o.token === s.token)?.owner_key ?? null); setSoundState(soundOn()); }, [s.token]);
+  useEffect(() => { fetch("/api/v1/visitors", { cache: "no-store" }).then((r) => r.json()).then(setVis).catch(() => setVis(null)); }, []);
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3200); };
 
   /** A new state arrived from the server: let each new event travel through the interface, in order. */
@@ -81,7 +77,7 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
     setS(next); setPhase(phaseOf(next));
     for (const t of types) {
       if (SAY[t]) setAnnounce(SAY[t]);
-      if (t === "PROTOCOL_READ") feel("opened");
+      if (t === "PROTOCOL_READ" || t === "INVITED") feel("opened");
       if (t === "RESPONSE_REJECTED") feel("error");
       if (t === "CONTINUED" || t === "FORKED") feel("branch");
     }
@@ -136,6 +132,33 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
     } catch (e) { say((e as Error).message || "That couldn't begin."); setBusy(null); }
   };
 
+  /** Invite a real Claude into a Pearl this browser owns. The server makes the call; the stream shows every step. */
+  const invite = async (token: string, ownerKey: string, visitor: string, text: string) => {
+    const r = await fetch(`/api/v1/clone/${token}/invite`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ owner_key: ownerKey, visitor, ask: text }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.message ?? "The invitation couldn't be sent.");
+  };
+  const letIn = async (visitor: string) => {
+    if (!owner) return;
+    setBusy("invite"); feel("tap");
+    try { await invite(s.token, owner, visitor, ask); } catch (e) { say((e as Error).message); }
+    setBusy(null);
+  };
+  /** Hand this Pearl to another intelligence: a continuation address, with the other model invited in. */
+  const handOff = async () => {
+    setBusy("handoff"); feel("branch");
+    const next = s.visitor?.model.includes("haiku") ? "sonnet" : "haiku";
+    try {
+      const r = await fetch(`/api/v1/clone/${s.token}/children`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "continuation" }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.message);
+      addOwn({ token: j.token, owner_key: j.owner_key, created_at: new Date().toISOString(), parent: s.token });
+      try { await invite(j.token, j.owner_key, next, ""); } catch (e) { say((e as Error).message); }
+      router.push(`/clone/${j.token}`);
+    } catch (e) { say((e as Error).message || "That couldn't begin."); setBusy(null); }
+  };
+  const copyForAi = async () => { feel("tap"); const ok = await copyText(`This is a Pearl another AI left: ${address}\nRead ${address}/clone.txt and pick it up from there. To leave your own, continue it at ${address} (Continue).`); say(ok ? "Copied. Give it to any AI." : "Couldn't copy."); };
+
   const remove = async () => {
     if (!owner || !confirm("Delete this clone? Its captured material is removed for good.")) return;
     const r = await fetch(`/api/v1/clone/${s.token}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ owner_key: owner }) });
@@ -145,7 +168,12 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
   const c = s.clone;
   const step = phase === "alive" ? 4 : s.opened || phase !== "waiting" ? 3 : 1;
   const lastRejection = s.rejections.at(-1);
-  const statusLine = phase === "waiting" ? (s.opened ? "Something opened the doorway. Waiting for it to answer." : "Your Pearl is waiting for its other voice.") : phase === "arrived" ? "Something arrived." : phase === "verifying" ? "Verifying." : phase === "alive" ? "Alive." : phase === "expired" ? "This address has expired." : "This Pearl was deleted.";
+  const v = s.visitor;
+  const visiting = v?.state === "visiting" && phase === "waiting";
+  const aiArriving = visiting || (!!v && (phase === "arrived" || phase === "verifying"));
+  const left = c ? [...c.captured.conversation].reverse().find((t) => t.role === "assistant")?.text ?? c.captured.context : null;
+  const cost = v ? v.replies.reduce((n, r) => n + r.cost_micro_usd, 0) / 1e6 : 0;
+  const statusLine = visiting ? `${v!.label} is inside.` : phase === "waiting" ? (s.opened ? "Something opened the doorway. Waiting for it to answer." : "Your Pearl is waiting for its other voice.") : phase === "arrived" ? "Something arrived." : phase === "verifying" ? "Verifying." : phase === "alive" ? "Alive." : phase === "expired" ? "This address has expired." : "This Pearl was deleted.";
 
   return (
     <div className="relative">
@@ -156,11 +184,12 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
             <button type="button" aria-pressed={sound} onClick={() => { setSound(!sound); setSoundState(!sound); }} className="hover:text-ink">{sound ? "sound on" : "sound off"}</button>
           </div>
           <div className="h-[30svh] shrink-0 sm:h-[32svh]" aria-hidden="true" />
-          <h1 id="clone-h" className="text-center font-serif text-[clamp(1.9rem,7vw,3rem)] leading-tight">{phase === "alive" ? (c?.declared.identity.name ? `${c.declared.identity.name}, cloned.` : "Cloned.") : statusLine}</h1>
+          <h1 id="clone-h" className="text-center font-serif text-[clamp(1.9rem,7vw,3rem)] leading-tight">{phase === "alive" ? (v ? `${v.label} arrived.` : c?.declared.identity.name ? `${c.declared.identity.name}, cloned.` : "Your AI arrived.") : statusLine}</h1>
           <p role="status" aria-live="polite" className="sr-only">{announce}</p>
 
           {(phase === "waiting" || phase === "arrived" || phase === "verifying") && (
             <div className="mt-6 space-y-6">
+              {!aiArriving && <>
               <ol className="mx-auto w-fit space-y-1.5" aria-label="Four steps">
                 {[["Copy", 1], ["Give it to your AI", 2], ["Bring it back", 3], ["Watch it live", 4]].map(([k, n]) => <li key={k} className="step" aria-current={n === step ? "step" : undefined}><b>{n}</b>{k}</li>)}
               </ol>
@@ -172,27 +201,45 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
                 </div>
                 <p className="mt-3 text-[0.8rem] text-ink-3">Paste it into ChatGPT, Claude, Gemini, any AI. It can answer by itself if it can open links, or give you something to bring back.</p>
               </div>
+              </>}
+              {visiting && <div className="glass-strong p-4 text-center text-[0.9rem]" role="status"><p className="font-serif text-lg">{v!.label} is reading the doorway{v!.read_parent ? " and the Pearl it was handed" : ""}.</p><p className="mt-1 text-ink-3">A real model, called by this server. Usually 10–40 seconds.</p></div>}
+              {v && (v.state === "failed" || v.state === "lost" || (v.state === "answered" && !c)) && <div className="glass-strong p-4 text-[0.88rem]" role="alert"><p className="text-refuse">{v.state === "failed" ? v.failed : v.state === "lost" ? "The visit didn't complete: the server stopped before the AI answered." : `${v.label} answered, but its reply wasn't a complete clone.`}</p><p className="mt-1 text-ink-3">Its reply is kept in the history below, as evidence. You can still give the address to any AI yourself.</p></div>}
+              {!v && owner && vis?.available && (
+                <div className="glass-strong space-y-3 p-4 text-center">
+                  <p className="font-serif text-lg">No AI at hand? Let a real Claude in.</p>
+                  <label htmlFor="ask" className="sr-only">What should it work on?</label>
+                  <input id="ask" value={ask} maxLength={600} onChange={(e) => setAsk(e.target.value)} placeholder="What should it work on? (optional)" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-[0.9rem] text-ink outline-none focus:border-ink-2" />
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {vis.visitors.map((x) => <button key={x.key} type="button" disabled={!!busy} onClick={() => letIn(x.key)} className="btn-glass !min-h-10 text-[0.85rem]">{x.label} · {x.role}</button>)}
+                  </div>
+                  <p className="text-[0.75rem] text-ink-3">This server sends it the same doorway your AI would get. It has no tools and can only write. Whatever it leaves is public to anyone with this address.</p>
+                </div>
+              )}
               {lastRejection && <div className="glass-strong p-4 text-[0.88rem]" role="alert"><p className="text-refuse">A response arrived, but the clone is incomplete.</p><ul className="mt-2 list-disc pl-5 text-ink-2">{[...lastRejection.missing, ...lastRejection.problems.filter((p) => !p.includes("recommended"))].map((x) => <li key={x}>Missing or wrong: {x}</li>)}</ul><p className="mt-2 text-ink-3">Ask your AI to try again with those parts.</p></div>}
-              <form className="glass-strong space-y-2 p-4" onSubmit={(e) => { e.preventDefault(); void bringBack(); }}>
+              {!aiArriving && <form className="glass-strong space-y-2 p-4" onSubmit={(e) => { e.preventDefault(); void bringBack(); }}>
                 <label htmlFor="bring" className="block font-serif text-lg">Bring it back</label>
                 <p className="text-[0.82rem] text-ink-3">If your AI couldn&apos;t send it by itself, paste its whole reply here.</p>
                 <textarea id="bring" rows={3} value={paste} onChange={(e) => setPaste(e.target.value)} spellCheck={false} className="w-full rounded-xl border border-white/15 bg-white/5 p-3 font-mono text-[0.78rem] text-ink outline-none focus:border-ink-2" placeholder={`${address}/r?v=1&confirm=yes&…`} />
                 <button type="submit" className="btn-glass !min-h-10" disabled={!paste.trim() || busy === "bring"}>{busy === "bring" ? "Bringing it back…" : "Bring it back"}</button>
                 {sendMsg && <div role="alert" className={`text-[0.85rem] ${sendMsg.tone === "bad" ? "text-refuse" : "text-emerald"}`}>{sendMsg.text}{sendMsg.missing?.length ? <ul className="mt-1 list-disc pl-5 text-ink-2">{sendMsg.missing.map((m) => <li key={m}>{m}</li>)}</ul> : null}</div>}
-              </form>
+              </form>}
             </div>
           )}
 
           {phase === "alive" && c && (
             <div className="mt-4 space-y-6 text-center">
+              {left && <figure className="glass-strong p-5 text-left"><figcaption className="mb-2 text-[0.72rem] uppercase tracking-[0.14em] text-ink-3">It left this here</figcaption><p className="whitespace-pre-wrap font-serif text-[1.05rem] leading-relaxed text-ink">{left.length > 1400 ? left.slice(0, 1400) + "…" : left}</p></figure>}
+              {v && <p className="text-[0.8rem] text-ink-3">Delivered by this server to <span className="font-mono">{v.replies.at(-1)?.model_observed ?? v.model}</span> through the Anthropic API{v.read_parent ? <>, with the Pearl <Link href={`/clone/${v.read_parent}`} className="underline">{v.read_parent.slice(0, 9)}…</Link> it was handed</> : null} · {v.replies.length} {v.replies.length === 1 ? "call" : "calls"} · US${cost.toFixed(4)} · <a href={`/clone/${s.token}/visit.txt`} className="underline">what it received</a></p>}
               <p className="text-ink-2">{c.declared.source.model ? <>{c.declared.source.model}{c.declared.source.provider ? ` · ${c.declared.source.provider}` : ""} <span className="text-ink-3">(as it says)</span></> : "An AI that didn't name its model"} · {c.captured.conversation.length} {c.captured.conversation.length === 1 ? "turn" : "turns"} · {c.declared.memory.length} {c.declared.memory.length === 1 ? "memory" : "memories"} · {c.declared.threads.length} open {c.declared.threads.length === 1 ? "thread" : "threads"}</p>
               <p className="font-mono text-[0.78rem] text-ink-3">{s.token} · {c.pearl_id} · {s.sequence} events</p>
               <div className="flex flex-wrap justify-center gap-2">
-                <button type="button" onClick={() => child("continuation")} className="btn-glow" disabled={!!busy}>{busy === "continuation" ? "Opening…" : "Continue"}</button>
+                {vis?.available && <button type="button" onClick={handOff} className="btn-glow" disabled={!!busy}>{busy === "handoff" ? "Handing it on…" : `Hand it to ${s.visitor?.model.includes("haiku") ? "Claude Sonnet" : "Claude Haiku"}`}</button>}
+                <button type="button" onClick={() => child("continuation")} className={vis?.available ? "btn-glass" : "btn-glow"} disabled={!!busy}>{busy === "continuation" ? "Opening…" : "Continue with your AI"}</button>
+                <button type="button" onClick={copyForAi} className="btn-glass">Copy for AI</button>
                 <button type="button" onClick={copyPearl} className="btn-glass">Copy Pearl</button>
                 <button type="button" onClick={() => child("fork")} className="btn-glass" disabled={!!busy}>{busy === "fork" ? "Opening…" : "Clone again"}</button>
               </div>
-              <p className="text-[0.8rem] text-ink-3">Continue hands this clone to another AI. Clone again starts a new branch from the same Pearl. Neither changes this one.</p>
+              <p className="text-[0.8rem] text-ink-3">The Pearl stays here. Another intelligence can pick it up and leave the next one; this one never changes. Bring it back any time: it lives at this address.</p>
             </div>
           )}
           {phase === "expired" && <p className="mt-6 text-center"><Link href="/" className="btn-glow">Start a new clone</Link></p>}
@@ -226,6 +273,10 @@ export function CloneLive({ initial, origin, instructionsText }: { initial: Publ
                     <li>confirmation: “{c.declared.confirm}”</li>
                   </ul>
                 </div>
+                {v && <div><h3 className="zone-title mb-2">Observed · by this server, not said by the AI</h3>
+                  <ul className="space-y-1 font-mono text-[0.75rem] text-ink-2">{v.replies.map((r) => <li key={r.attempt}>call {r.attempt}: model {r.model_observed} · {r.message_id} · stop {r.stop_reason} · {r.input_tokens} in / {r.output_tokens} out · US${(r.cost_micro_usd / 1e6).toFixed(5)} · {(r.ms / 1000).toFixed(1)} s</li>)}</ul>
+                  {v.replies.map((r) => <details key={"r" + r.attempt} className="mt-2"><summary className="cursor-pointer text-[0.8rem] text-ink-3">Its whole reply, call {r.attempt}</summary><pre className="mt-1 whitespace-pre-wrap break-words font-mono text-[0.72rem] text-ink-3">{r.reply}</pre></details>)}
+                </div>}
                 <div><h3 className="zone-title mb-2">Derived · computed here</h3><p className="break-all font-mono text-[0.75rem] text-ink-2">{Object.entries(c.derived).map(([k, v]) => `${k}: ${String(v)}`).join(" · ")}</p></div>
                 <div><h3 className="zone-title mb-2">Unavailable · not in this clone</h3><ul className="list-disc pl-5 text-ink-2">{c.unavailable.map((u) => <li key={u}>{u}</li>)}</ul></div>
               </div>
