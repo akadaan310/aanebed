@@ -3,7 +3,7 @@ import { SITE } from "@/content/site";
 import { NODES } from "@/content/research";
 import { EXPERIENCES } from "@/content/experiences";
 
-export const PAGES = ["/", "/live", "/play", "/compare", "/create", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
+export const PAGES = ["/", "/g/ttt", "/clock", "/loom", "/garden", "/report", "/how", "/developers", "/live", "/play", "/compare", "/create", "/spaces", "/explore", "/capabilities", "/prompts", "/workspace", "/continue", "/compose", "/research", "/ai", "/protocol", "/experiments", "/verify", "/press", "/broadcast", "/about"];
 export const FILES = ["/llms.txt", "/ai.txt", "/.well-known/ai", "/research.json", "/verify/ingress.json", "/capabilities.json", "/schemas/research-manifest.schema.json", "/schemas/pearl.schema.json", "/schemas/pearl-export.schema.json"];
 
 export default function sitemap(): MetadataRoute.Sitemap {

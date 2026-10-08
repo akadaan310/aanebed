@@ -19,7 +19,17 @@ const isJson = (want = 200): Check => (r) => (r.status !== want ? `status ${r.st
 const isHtml = (want = 200, must?: string): Check => (r) => (r.status !== want ? `status ${r.status}` : !r.type.includes("html") ? `type ${r.type}` : must && !r.body.includes(must) ? `missing “${must}”` : null);
 
 const CASES: { name: string; path: string; check: Check }[] = [
-  { name: "home", path: "/", check: isHtml(200, "Your AI can make a Pearl") },
+  { name: "home: come here", path: "/", check: isHtml(200, "Come here.") },
+  { name: "how it works (the previous home)", path: "/how", check: isHtml(200, "Your AI can make a Pearl") },
+  { name: "game page", path: "/g/ttt/4~you/0~ai-a", check: isHtml(200, "How it got here") },
+  { name: "game JSON: board and legal moves", path: "/api/v1/game/ttt/4~you/0~claude", check: (r) => isJson()(r) ?? (r.json.board !== "O---X----" || r.json.legal_moves?.length !== 7 ? `board ${r.json.board}` : null) },
+  { name: "game: an illegal move is 422", path: "/api/v1/game/ttt/4/4", check: isJson(422) },
+  { name: "clock", path: "/clock", check: isHtml(200, "A clock that keeps its own time.") },
+  { name: "loom", path: "/loom/110/16/1", check: isHtml(200, "A loom that weaves from one rule.") },
+  { name: "garden", path: "/garden", check: isHtml(200) },
+  { name: "report", path: "/report", check: isHtml(200, "Tell us what happened.") },
+  { name: "developers", path: "/developers", check: isHtml(200, "The Pearl Runtime Substrate") },
+  { name: "substrate status is honest and hides the base", path: "/api/substrate/status", check: (r) => isJson()(r) ?? (!["not_configured", "unreachable", "connected"].includes(r.json.kind) ? `kind ${r.json.kind}` : /129\.213|8477/.test(r.body) ? "leaks the substrate address" : null) },
   { name: "compose", path: "/compose", check: isHtml(200) },
   { name: "prompts", path: "/prompts", check: isHtml(200) },
   { name: "workspace", path: "/workspace", check: isHtml(200) },

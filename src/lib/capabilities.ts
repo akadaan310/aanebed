@@ -71,6 +71,14 @@ export const CAPABILITIES: Capability[] = [
     example: `${ORIGIN}/api/v1/living?u=/x/map/eca/90/8/state/5`,
   },
   {
+    id: "game.ttt", version: "1", purpose: "Noughts and crosses whose URL is its whole history: board, whose turn, result, legal next moves (each a URL) and who said they made each move. For passing one game between people and AIs.",
+    method: "GET", url: `${ORIGIN}/api/v1/game/ttt/{cell}~{name}/{cell}~{name}/…`,
+    input: { moves: "path segments: a cell 0–8, optionally ~name (self-declared, [a-z0-9-], ≤ 24)" }, output: { board: "9 chars", turn: "X | O | null", legal_moves: "[{cell, url}]", moves: "[{cell, mark, who, who_status}]" },
+    mode: "pure", side_effects: "none", auth: "none", limits: { moves: 9 },
+    errors: { "422": "malformed, occupied, or after the game ended (last_valid says where)" }, engine: "javascript (this site)",
+    example: `${ORIGIN}/api/v1/game/ttt/4~you/0~claude`,
+  },
+  {
     id: "hash.sha256", version: "1", purpose: "SHA-256 of a UTF-8 string, with the 80-bit Crockford-base32 short form Pearls use for ids. Useful because language models cannot compute hashes reliably.",
     method: "GET", url: `${ORIGIN}/api/v1/hash?text={text}`,
     input: { text: `string, at most ${TEXT_LIMIT} characters` }, output: { sha256: "hex", short: "16 base32 chars", bytes: "number" },
@@ -98,7 +106,7 @@ export const CAPABILITIES: Capability[] = [
 
 /** Compute engines behind capabilities. Only "javascript" exists; others are an adapter boundary, not a service. */
 export const ENGINES = [
-  { id: "javascript", status: "active", runs: ["pearl.check", "pearl.decode", "pearl.fork", "pearl.diff", "living.describe", "hash.sha256", "text.transform", "compute.eca"] },
+  { id: "javascript", status: "active", runs: ["pearl.check", "pearl.decode", "pearl.fork", "pearl.diff", "living.describe", "game.ttt", "hash.sha256", "text.transform", "compute.eca"] },
   { id: "julia", status: "not available", note: "No Julia runtime is deployed. A future engine would implement the ComputeEngine interface (src/lib/capabilities.ts) behind a named, bounded capability; nothing is substituted for it." },
 ];
 

@@ -1,24 +1,24 @@
 import Link from "next/link";
 import { SITE, MACHINE_ENTRYPOINTS } from "@/content/site";
 import { ModeSwitch } from "@/components/ModeSwitch";
+import { SoundToggle } from "@/components/v6/Actions";
 import { PearlGlyphClient } from "@/components/pearl/PearlGlyphClient";
 import { HOST } from "@/config/origin";
 
 export const PRIMARY_NAV = [
   { href: "/", label: "Discover" },
-  { href: "/workspace", label: "My Pearls" },
-  { href: "/spaces", label: "Spaces" },
-  { href: "/create", label: "Create" },
-  { href: "/explore", label: "Explore" },
+  { href: "/g/ttt", label: "Play" },
+  { href: "/create", label: "Make" },
+  { href: "/garden", label: "Your Pearls" },
 ] as const;
 
-/** The research surface stays one tap away. */
+/** Downstairs: the research and the machinery, one tap away, never in the way. */
 export const SECONDARY_NAV = [
-  { href: "/live", label: "Live" },
-  { href: "/play", label: "Play" },
+  { href: "/workspace", label: "Library" },
+  { href: "/spaces", label: "Spaces" },
+  { href: "/how", label: "How it works" },
   { href: "/research", label: "Research" },
-  { href: "/ai", label: "AI Lab" },
-  { href: "/verify", label: "Verify" },
+  { href: "/developers", label: "Developers" },
   { href: "/about", label: "About" },
 ] as const;
 
@@ -41,8 +41,8 @@ export function Header() {
           </ul>
         </nav>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:block"><ModeSwitch /></span>
-          <Link href="/#first" className="btn-solid hidden !min-h-10 !py-2 text-[0.9rem] md:inline-flex">Try your first Pearl</Link>
+          <span className="hidden sm:block"><SoundToggle /></span>
+          <Link href="/#make" className="btn-glow hidden !min-h-10 !py-2 text-[0.9rem] md:inline-flex">Make something</Link>
           <details className="relative lg:hidden">
             <summary className="btn-soft !min-h-10 !py-2" aria-label="Menu">Menu</summary>
             <nav aria-label="Primary (mobile)" className="card absolute right-0 top-12 w-72 p-2 shadow-xl">
@@ -56,7 +56,7 @@ export function Header() {
                   <li key={n.href}><Link href={n.href} className="block rounded-lg px-3 py-2.5 no-underline hover:bg-raised hover:text-ink">{n.label}</Link></li>
                 ))}
               </ul>
-              <div className="border-t border-rule px-3 py-3 sm:hidden"><ModeSwitch /></div>
+              <div className="flex items-center justify-between border-t border-rule px-3 py-3 sm:hidden"><ModeSwitch /><SoundToggle /></div>
             </nav>
           </details>
         </div>
@@ -71,34 +71,26 @@ export function Footer() {
       <div className="wrap grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <p className="flex items-center gap-2 font-serif text-xl text-ink"><PearlGlyphClient size={20} /> Pearls</p>
-          <p className="measure mt-2">Programmable URLs for AI. Your AI makes a Pearl; you bring it here, keep it, and carry it on. Made by Abed Kadaan.</p>
+          <p className="measure mt-2">A place where people and AIs make things that have addresses. Give them to your AI; bring them back. Made by Abed Kadaan.</p>
           <p className="mt-4 font-mono text-[0.75rem] text-ink-3">{HOST} · v{SITE.version} · <a href={SITE.source}>source</a></p>
+          <div className="mt-4"><ModeSwitch /></div>
         </div>
         <nav aria-label="Product">
-          <p className="mb-3 font-semibold text-ink">Product</p>
+          <p className="mb-3 font-semibold text-ink">Pearls</p>
           <ul className="space-y-1.5">
-            {PRIMARY_NAV.map((n) => <li key={n.href}><Link href={n.href} className="no-underline hover:text-ink">{n.label}</Link></li>)}
-            <li><Link href="/live" className="no-underline hover:text-ink">Live addresses</Link></li>
-            <li><Link href="/play" className="no-underline hover:text-ink">Play</Link></li>
-            <li><Link href="/compare" className="no-underline hover:text-ink">Compare</Link></li>
-            <li><Link href="/prompts" className="no-underline hover:text-ink">Prompts</Link></li>
-            <li><Link href="/continue" className="no-underline hover:text-ink">Continuity Pearls</Link></li>
+            {[["Discover", "/"], ["Play", "/g/ttt"], ["Make", "/create"], ["Your Pearls", "/garden"], ["Library", "/workspace"], ["Spaces", "/spaces"], ["Bring it back", "/#bring"], ["Something wrong?", "/report"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
           </ul>
         </nav>
         <nav aria-label="Research">
-          <p className="mb-3 font-semibold text-ink">Research</p>
+          <p className="mb-3 font-semibold text-ink">Downstairs</p>
           <ul className="space-y-1.5">
-            <li><Link href="/research" className="no-underline hover:text-ink">Research map</Link></li>
-            <li><Link href="/ai" className="no-underline hover:text-ink">AI Lab</Link></li>
-            <li><Link href="/verify" className="no-underline hover:text-ink">Verify</Link></li>
-            <li><Link href="/compose" className="no-underline hover:text-ink">Pearl grammar</Link></li>
-            <li><Link href="/press" className="no-underline hover:text-ink">Press brief</Link></li>
-            <li><Link href="/about" className="no-underline hover:text-ink">About Abed</Link></li>
+            {[["How it works", "/how"], ["Research", "/research"], ["Substrate", "/research/substrate"], ["PURL", "/research/purl"], ["AI-CI", "/research/ai-ci"], ["Live addresses", "/live"], ["Seven Verbs", "/play"], ["AI Lab", "/ai"], ["Verify", "/verify"], ["Institutions & press", "/press"], ["About", "/about"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
           </ul>
         </nav>
         <nav aria-label="Machine interface">
           <p className="mb-3 font-semibold text-ink">For AI</p>
           <ul className="space-y-1.5 font-mono text-[0.78rem]">
+            <li><Link href="/developers" className="font-sans text-[0.9rem] no-underline hover:text-ink">Developers</Link></li>
             {MACHINE_ENTRYPOINTS.filter((e) => ["/llms.txt", "/ai.txt", "/.well-known/ai", "/research.json", "/capabilities.json", "/e.json"].includes(e.path)).map((e) => (
               <li key={e.path}><a href={e.path} className="no-underline hover:text-ink">{e.path}</a></li>
             ))}

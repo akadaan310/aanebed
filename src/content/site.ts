@@ -6,7 +6,7 @@ export const SITE = {
   name: "Abed Kadaan",
   agency: "Abed Kadaan Agency",
   /** bump when the research record on this site changes */
-  version: "2.0.0",
+  version: "6.0.0",
   updated: "2026-10-08",
   contact: "akadaan310@gmail.com",
   github: "https://github.com/akadaan310",
@@ -99,6 +99,9 @@ export const MACHINE_ENTRYPOINTS = [
   { path: "/e", type: "text/html", purpose: "A Pearl: /e?type=…&title=…&by=…&session=…&b1=kind:text&b2=… (rendered from the URL alone; nothing stored)" },
   { path: "/e.json", type: "application/json", purpose: "Check a Pearl link: the document it encodes, its id, errors, and the parameters that actually arrived" },
   { path: "/p/{id}.{payload}", type: "text/html", purpose: "A portable Pearl: compressed, self-contained, verified against its content id" },
+  { path: "/g/ttt/{cell}~{name}/…", type: "text/html", purpose: "A game whose URL is its whole history. An AI reads it, makes one legal move by appending /{cell}~{its name}, and returns the new URL. JSON: /api/v1/game/ttt/…" },
+  { path: "/api/v1/game/ttt/{moves}", type: "application/json", purpose: "The game as JSON: board, turn, legal_moves (each a URL), moves with who said they made them (self-declared)" },
+  { path: "/api/substrate/status", type: "application/json", purpose: "Whether the Pearl Runtime Substrate (shared storage, AI identity) is connected to this deployment" },
   { path: "/live/{address}", type: "text/html", purpose: "A computational address as a living object: the browser URL is the address; every command (NEXT, PERTURB, TRACE, ORBIT, BACK) navigates to the next address" },
   { path: "/api/v1/living?u={Pearl link | address}", type: "application/json", purpose: "The living record (living/1) of a Pearl or an address: state, legal affordances with their next addresses, history, related objects, evidence, explanation. The human pages render the same record" },
   { path: "/compare", type: "text/html", purpose: "Compare two Pearls (pearl.diff in the browser)" },

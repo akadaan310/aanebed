@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   other: { "ai-manifest": "/.well-known/ai", "research-manifest": "/research.json" },
 };
 
-export const viewport: Viewport = { themeColor: "#f7f2e8", colorScheme: "light", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0b0d18", colorScheme: "dark", width: "device-width", initialScale: 1 };
 
 const graph = {
   "@context": "https://schema.org",
@@ -90,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: MODE_BOOT }} />
         <JsonLd data={graph} />
       </head>
-      <body className="surface-product bg-ground text-ink">
+      <body className="surface-world world-bg text-ink">
         <Header />
         <main id="main" tabIndex={-1} className="focus:outline-none">{children}</main>
         <Footer />

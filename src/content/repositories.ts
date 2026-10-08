@@ -11,6 +11,7 @@ export const REPOSITORIES: Repository[] = [
   { id: "netscape-surface", slug: "akadaan310/netscape-surface", url: gh("akadaan310/netscape-surface"), commit: "dcda42667bd8e6a90e7ebc9abf26b9a59dd048e9", visibility: "public" },
   { id: "substrateio", slug: "akadaan310/substrateIO", url: gh("akadaan310/substrateIO"), commit: "7ace119a544fc736f0d4ec1d72cded9dad0a83e3", visibility: "public" },
   { id: "musa", slug: "akadaan310/MUSA", url: gh("akadaan310/MUSA"), commit: "d797135727787124d18193f04af26d6c3fed03a5", visibility: "public" },
+  { id: "pearl-substrate", slug: "akadaan310/pearl-substrate", url: gh("akadaan310/pearl-substrate"), commit: "e79edac4ecbebf9eeee84f8a16ce5e91842a0891", visibility: "public" },
   { id: "site", slug: "akadaan310/aanebed", url: gh("akadaan310/aanebed"), commit: "HEAD", visibility: "public" },
 ];
 

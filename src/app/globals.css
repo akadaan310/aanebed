@@ -79,14 +79,35 @@
   --pearl-lo: #2a2620;
 }
 
+/* V6: the world. A night-sky surface of glass where living Pearls float. */
+.surface-world {
+  color-scheme: dark;
+  --color-ground: #0b0d18;
+  --color-panel: #151a2c;
+  --color-raised: #1c2238;
+  --color-rule: #2a3150;
+  --color-rule-strong: #414a72;
+  --color-ink: #f3f1ea;
+  --color-ink-2: #cfcde0;
+  --color-ink-3: #a7a5c2;
+  --color-emerald: #86e3bb;
+  --color-emerald-deep: #1f4a3d;
+  --color-gold: #f2cb7b;
+  --color-gold-deep: #4a3b17;
+  --color-refuse: #ffa392;
+  --pearl-hi: #ffffff;
+  --pearl-mid: #d9d3f0;
+  --pearl-lo: #5a5490;
+}
+
 /* Simple | Explore: one data model, two presentations. Without JavaScript, Simple. */
 html:not([data-mode="explore"]) .explore-only { display: none !important; }
 html[data-mode="explore"] .simple-only { display: none !important; }
 
 @layer base {
   html {
-    color-scheme: light;
-    background: #f7f2e8;
+    color-scheme: dark;
+    background: #0b0d18;
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 5rem;
   }
@@ -101,6 +122,7 @@ html[data-mode="explore"] .simple-only { display: none !important; }
   }
   ::selection { background: var(--color-emerald); color: var(--color-ground); }
   .surface-product ::selection { background: #0e6b50; color: #fffcf6; }
+  .surface-world ::selection { background: #86e3bb; color: #0b0d18; }
   a { color: inherit; text-decoration-color: var(--color-rule-strong); text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
   a:hover { text-decoration-color: var(--color-emerald); }
   :focus-visible { outline: 2px solid var(--color-emerald); outline-offset: 3px; border-radius: 1px; }
@@ -232,3 +254,29 @@ html[data-mode="explore"] .simple-only { display: none !important; }
   .world-node { transition: transform 200ms var(--ease-transition); }
 }
 @keyframes turn { from { opacity: 0.35; transform: rotate(-14deg) scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* V6 world components */
+@layer components {
+  .world-bg { background:
+      radial-gradient(60rem 40rem at 15% -10%, rgb(110 90 220 / 0.32), transparent 60%),
+      radial-gradient(50rem 36rem at 95% 10%, rgb(40 170 150 / 0.22), transparent 60%),
+      radial-gradient(70rem 40rem at 50% 120%, rgb(230 160 80 / 0.16), transparent 60%),
+      var(--color-ground); }
+  .glass { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.13); border-radius: 1.6rem; backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: 0 30px 80px -40px rgb(0 0 0 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.08); }
+  .glass-strong { background: rgb(21 26 44 / 0.86); border: 1px solid rgb(255 255 255 / 0.14); border-radius: 1.6rem; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+  .pearl-tile { position: relative; display: flex; flex-direction: column; overflow: hidden; text-decoration: none; color: var(--color-ink); transition: transform 260ms var(--ease-transition), box-shadow 260ms var(--ease-transition), border-color 260ms; }
+  .pearl-tile:hover, .pearl-tile:focus-visible { transform: translateY(-4px) scale(1.01); border-color: rgb(255 255 255 / 0.3); box-shadow: 0 40px 90px -40px rgb(120 100 255 / 0.55); }
+  .orb { border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--pearl-hi), var(--pearl-mid) 45%, var(--pearl-lo) 100%); box-shadow: 0 0 60px -10px rgb(180 170 255 / 0.55), inset -10px -14px 30px rgb(40 30 90 / 0.5); }
+  .orb-float { animation: float 7s ease-in-out infinite; }
+  .btn-glow { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 3rem; padding: 0.7rem 1.35rem; border-radius: 999px; background: var(--color-ink); color: var(--color-ground); font-weight: 600; font-size: 0.98rem; text-decoration: none; cursor: pointer; box-shadow: 0 10px 40px -10px rgb(200 190 255 / 0.6); transition: transform 160ms var(--ease-transition); }
+  .btn-glow:hover { transform: translateY(-1px); }
+  .btn-glass { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.55rem 1.1rem; border-radius: 999px; background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.18); color: var(--color-ink); font-size: 0.92rem; text-decoration: none; cursor: pointer; transition: background 160ms, border-color 160ms; }
+  .btn-glass:hover { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.32); }
+  .chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.7rem; border-radius: 999px; background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.12); font-size: 0.78rem; color: var(--color-ink-2); }
+  .zone-title { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-ink-3); }
+  .cell-btn { display: grid; place-items: center; aspect-ratio: 1; border-radius: 1.1rem; background: rgb(255 255 255 / 0.05); border: 1px solid rgb(255 255 255 / 0.12); font-family: var(--font-serif); font-size: clamp(2.2rem, 9vw, 3.6rem); color: var(--color-ink); text-decoration: none; transition: background 160ms, transform 160ms; }
+  a.cell-btn:hover, a.cell-btn:focus-visible { background: rgb(134 227 187 / 0.16); transform: scale(1.03); }
+  .cell-win { background: rgb(242 203 123 / 0.22); border-color: var(--color-gold); }
+  .toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 60; animation: reveal 220ms var(--ease-transition) both; }
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }

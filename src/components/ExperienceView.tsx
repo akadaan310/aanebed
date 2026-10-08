@@ -165,7 +165,7 @@ export function PearlState({ s }: { s: PearlState }) {
 export function PearlHeader({ pearl, id, digest, states, source }: { pearl: Pearl; id: string; digest: string; states: PearlState[]; source: string }) {
   const info = TYPE_INFO[pearl.type];
   return (
-    <div className="border-b border-gold/40 bg-raised">
+    <div className="explore-only border-b border-gold/40 bg-raised">
       <div className="wrap flex flex-wrap items-center gap-x-5 gap-y-2 py-3 font-mono text-[0.72rem] text-ink-2">
         <span className="flex items-center gap-2 text-gold"><PearlGlyph /> PEARL · {info.label.toUpperCase()}</span>
         <span className="text-ink" title={`sha256:${digest}`}>{id}</span>

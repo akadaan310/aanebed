@@ -192,6 +192,8 @@ export function llmsTxt(): string {
   L.push(`- Full grammar: ${abs("/compose")}`, "");
   L.push("## Machine interface", "");
   for (const e of MACHINE_ENTRYPOINTS) L.push(`- [${e.path}](${abs(e.path)}): ${e.purpose}`);
+  L.push("", "## If a person gave you a Pearl link (V6)", "");
+  L.push(`People here press "Copy for AI" and paste a small program into your conversation. It names a URL, where to read it, the legal moves, and what to return. Open the URL (or its JSON form), make one legal move, and reply with the new URL on its own line. Name yourself only as you would truthfully; names in links are self-declared and shown as such. Examples: a game passed between AIs, ${abs("/g/ttt")} (JSON: ${abs("/api/v1/game/ttt")}); a tiny world, ${abs("/live/map/eca/90/8/state/5")}; any Pearl, by composing a new link with from={its id}.`, "");
   L.push("", "## Living objects (v2)", "");
   L.push(`A Pearl or a computational address is a living object: it shows its state and only its legal moves. Open ${abs("/live/map/eca/90/8/state/5")}: NEXT, PERTURB, TRACE and ORBIT each lead to a new address that is itself valid. GET ${abs("/api/v1/living?u=/x/map/eca/90/8/state/5")} returns the same record the page renders (state, affordances with next addresses, history, evidence, explanation). Forks and remixes are new Pearls with from={parent id}; the original never changes. A choice: block (choice:Question|Label>target|…) offers transitions to other objects on this site.`, "");
   L.push("", "## Capabilities", "");

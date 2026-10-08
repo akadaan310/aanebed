@@ -1,4 +1,76 @@
-# Final report — Pearls v2, the Living Programmable Surface
+# Final report — Pearls V6, the human surface
+
+Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 6.0.0 · Plan: `docs/v6/IMPLEMENTATION_MAP.md` · Backend gaps: `docs/v6/BACKEND_CONTRACT_GAPS.md`
+
+V6 makes the machine disappear until someone wants to see it. The landing is a place, not a lecture: "Come here." Under it, every V2 capability, research page and machine interface is preserved: moved downstairs, not deleted.
+
+## Implemented
+
+- **Landing (`/`):**
+  - "Come here." with a tiny world that responds to the first touch. The ECA ring is reframed as "Continue / Watch it evolve / Make it mine", the address changes in the URL, and the technical view is one link away ("How does it work?").
+  - A "Want another?" park in five zones: Play, Strange, With AI, Useful, Continuity.
+  - "What should we make?" turns the person's sentence into a Copy-for-AI program. The site has no model of its own and says so.
+  - "Bring it back" finds the link in an AI's reply.
+  - "One link, many minds", and a downstairs band holding the AI offer, AI-CI and the research links.
+  - "You were here" for returning visitors.
+- **The ten experiences, all on the same substrate (pearl/1 + pure capabilities):**
+  1. the tiny world (`/live/…`);
+  2. a game, noughts and crosses whose URL is its history (`/g/ttt/{cell}~{name}/…`);
+  3. a strange clock (`/clock/{rule}/{n}/{seed}`);
+  4. a pattern loom (`/loom/…`);
+  5. a conversation Pearl;
+  6. an AI-made tool (a two-minute decider, by Claude in this session, labelled so);
+  7. AI handoff (Copy for AI everywhere);
+  8. a report Pearl (`/report`);
+  9. fork and remix ("Make your own", "Change it");
+  10. multi-AI continuation (the game passed between AIs, with its lineage).
+- **Copy for AI:** a small, provider-neutral program per object (`src/lib/v6/handoff.ts`), generated from the object. It covers what it is, where to read it, the legal moves, and what to return.
+- **Continuity without an account:** a browser trail (`pearls.trail.v1`) and the garden (`/garden`): what you opened, made, kept, gave to an AI and got back, as a constellation. AI participants are shown by the names they gave, marked self-declared.
+- **Pearl viewer in human language:** Copy for AI · Copy link · Make your own · Change it · Keep · Check it · Explain · Inspect. The technical badges and the Surface/Substrate/Proof tabs moved behind Explore and Inspect. The palette keeps the precise commands.
+- **The world surface:** a cinematic night-glass theme for the whole product (token-driven), mobile-first, with reduced motion respected. The optional computational sound is off by default, never needed, and has a toggle.
+- **Errors in human language:** a global error boundary offers Try again, a diagnostic report (which becomes a Pearl), and the technical detail on request.
+- **Substrate adapter (`src/lib/substrate/`):**
+  - a typed client for routes that exist in `pearl-substrate`, with the structured error envelope mapped to human messages;
+  - a server-only config (`PEARL_SUBSTRATE_URL`, https only);
+  - `/api/substrate/status`, which never echoes the base URL;
+  - a schema-compatibility mirror of the substrate validator.
+- **Machine surface:** the `game.ttt` capability (JSON at `/api/v1/game/ttt/…`), new entry points, a V6 section in `llms.txt`, and `/developers`.
+
+## Tested (local production build)
+
+| Suite | Result |
+|---|---|
+| Unit | 100 tests: 99 pass, 1 skipped (PostgreSQL), 0 fail. New: substrate adapter (fake of the documented API; compat verdicts equal a real run of the substrate's `validate.py`), the game engine |
+| Browser (desktop + Pixel 7) | 212 tests: 206 pass, 6 skipped (device-specific), 0 fail. axe WCAG 2.1 A/AA on every page including all V6 pages; the §66 stranger journey (touch, change, URL changes, Copy for AI, no account anywhere); the §54/§55 multi-AI game (you → "claude" → you → "gpt", lineage in the URL, names marked self-declared, garden remembers); refusals; make / loom / clock / report; the machine surface |
+| Ingress harness | see LIVE_INGRESS |
+| Smoke | 48 checks, see below |
+
+## Deployed
+
+LIVE_PLACEHOLDER
+
+## Blocked (backend), with the exact contract needed
+
+See `docs/v6/BACKEND_CONTRACT_GAPS.md`:
+
+- G1: the substrate is not publicly reachable (127.0.0.1 behind SSH-only ingress).
+- G2: the block schemas differ, so the owner's Claude Pearl and the living experience are rejected by the substrate's own validator, while plain Pearls agree with identical ids.
+- G3: no production human sign-in exists (dev-login only; magic links deferred), so V6 has no sign-up.
+- G4: the OpenAPI output marks public reads as authenticated.
+- G5: no GET-reachable way for an AI to prove identity with a contribution.
+- G6: tickets, continuity carry/restore and experiences are deferred on the substrate.
+- G7: the V4 contract document does not exist yet.
+
+The consumer surface did not SSH anywhere, install anything, invent endpoints, or modify the substrate repository.
+
+## Not established
+
+- No person was observed doing the §66 journey. The browser test performs it; it is not a user study (claim C-24 remains HYPOTHESIS).
+- No AI was actually given the Copy-for-AI programs in this phase. The multi-AI test pastes replies written by the test, with names "claude" and "gpt" as labels, not real model runs. Whether real AIs follow the programs is the next experiment.
+
+---
+
+# Previous phase — Pearls v2, the Living Programmable Surface
 
 Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 2.0.0 · Design: `docs/architecture/PEARLS_V2.md`
 
