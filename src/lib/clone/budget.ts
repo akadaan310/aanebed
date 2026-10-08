@@ -28,7 +28,7 @@ export function ceiling(env: Record<string, string | undefined> = process.env): 
   return Number.isFinite(v) && v >= 0 ? Math.min(v, HARD_CEILING_USD) : HARD_CEILING_USD;
 }
 
-export interface Entry { seq: number; at: string; kind: "reserve" | "settle"; usd: number; total: number; calls: number; model: string; clone: string }
+export interface Entry { seq: number; at: string; kind: "genesis" | "reserve" | "settle"; usd: number; total: number; calls: number; model: string; clone: string }
 export class BudgetError extends Error { constructor(public code: "budget_spent" | "too_many_calls" | "contention", message: string) { super(message); } }
 
 const PREFIX = "budget/anthropic/";
@@ -37,11 +37,21 @@ const key = (n: number) => `${PREFIX}${String(n).padStart(7, "0")}.json`;
 export class Ledger {
   constructor(private kv: Kv, private cap = ceiling(), private now: () => Date = () => new Date()) {}
 
-  /** The newest entry. The listing is a hint that may lag; exact keys are probed forward from it until the first gap. */
+  /**
+   * The newest entry. The listing is a hint that may lag; exact keys are probed forward from it until the first gap.
+   * The ledger starts with a zero genesis entry (seq 0), written without reading, so the prefix is never empty.
+   * Any read error propagates: the ledger fails closed, it never reads as "nothing spent".
+   */
   async tip(): Promise<Entry | null> {
-    const listed = await this.kv.list(PREFIX);
-    let n = listed.length ? Number(listed.at(-1)!.slice(PREFIX.length, PREFIX.length + 7)) : 0;
-    let tip: Entry | null = n ? JSON.parse((await this.kv.read(key(n)))!) as Entry : null;
+    let listed = await this.kv.list(PREFIX);
+    if (!listed.length) {
+      await this.kv.create(key(0), JSON.stringify({ seq: 0, at: this.now().toISOString(), kind: "genesis", usd: 0, total: 0, calls: 0, model: "", clone: "" } satisfies Entry));
+      listed = [key(0)];
+    }
+    let n = Number(listed.at(-1)!.slice(PREFIX.length, PREFIX.length + 7));
+    const first = await this.kv.read(key(n));
+    if (!first) throw new Error("budget ledger: listed entry unreadable");
+    let tip: Entry | null = JSON.parse(first) as Entry;
     for (;;) {
       const raw = await this.kv.read(key(n + 1));
       if (!raw) return tip;
