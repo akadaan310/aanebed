@@ -6,7 +6,8 @@ import { PearlGlyphClient } from "@/components/pearl/PearlGlyphClient";
 import { HOST } from "@/config/origin";
 
 export const PRIMARY_NAV = [
-  { href: "/", label: "Discover" },
+  { href: "/", label: "Clone" },
+  { href: "/world", label: "Discover" },
   { href: "/g/ttt", label: "Play" },
   { href: "/create", label: "Make" },
   { href: "/garden", label: "Your Pearls" },
@@ -33,7 +34,7 @@ export function Header() {
           <PearlGlyphClient size={24} />
           <span className="font-serif text-[1.35rem] tracking-tight">Pearls</span>
         </Link>
-        <nav aria-label="Primary" className="hidden lg:block">
+        <nav aria-label="Primary" className="site-nav hidden lg:block">
           <ul className="flex items-center gap-1 text-[0.95rem]">
             {PRIMARY_NAV.map((n) => (
               <li key={n.href}><Link href={n.href} className="rounded-full px-3.5 py-2 text-ink-2 no-underline hover:bg-raised hover:text-ink">{n.label}</Link></li>
@@ -41,8 +42,8 @@ export function Header() {
           </ul>
         </nav>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:block"><SoundToggle /></span>
-          <Link href="/#make" className="btn-glow hidden !min-h-10 !py-2 text-[0.9rem] md:inline-flex">Make something</Link>
+          <span className="site-cta hidden sm:block"><SoundToggle /></span>
+          <Link href="/" className="site-cta btn-glow hidden !min-h-10 !py-2 text-[0.9rem] md:inline-flex">Clone your AI</Link>
           <details className="relative lg:hidden">
             <summary className="btn-soft !min-h-10 !py-2" aria-label="Menu">Menu</summary>
             <nav aria-label="Primary (mobile)" className="card absolute right-0 top-12 w-72 p-2 shadow-xl">
@@ -78,7 +79,7 @@ export function Footer() {
         <nav aria-label="Product">
           <p className="mb-3 font-semibold text-ink">Pearls</p>
           <ul className="space-y-1.5">
-            {[["Discover", "/"], ["Play", "/g/ttt"], ["Make", "/create"], ["Your Pearls", "/garden"], ["Library", "/workspace"], ["Spaces", "/spaces"], ["Bring it back", "/#bring"], ["Something wrong?", "/report"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
+            {[["Clone your AI", "/"], ["Your clones", "/clones"], ["Discover", "/world"], ["Play", "/g/ttt"], ["Make", "/create"], ["Your Pearls", "/garden"], ["Library", "/workspace"], ["Spaces", "/spaces"], ["Bring it back", "/world#bring"], ["Something wrong?", "/report"]].map(([k, h]) => <li key={h}><Link href={h} className="no-underline hover:text-ink">{k}</Link></li>)}
           </ul>
         </nav>
         <nav aria-label="Research">

@@ -347,7 +347,7 @@ async function main() {
   check("repository-links-consistent", "machine", strays.length === 0, strays.length ? `not in manifest: ${strays.join(", ")}` : `${pageRepoLinks.size} distinct repository links, all in the manifest`);
 
   // Static (no-JS) readability of the root page.
-  check("readable-without-js", "browser-static", ["Come here.", "Give them to your AI.", "Bring it back", "The web is becoming programmable", "AI-CI", "Continuity", "PURL", "Golden Surface"].every((t) => plain.includes(t)), "key content present in server HTML before any script runs");
+  check("readable-without-js", "browser-static", ["Clone your AI", "Give your AI a doorway", "Bring it back", "The web is becoming programmable", "AI-CI", "Continuity", "PURL", "Golden Surface"].every((t) => plain.includes(t)), "key content present in server HTML before any script runs");
 
   // 404 behaviour.
   const nf = await get("/no-such-page-" + sha256("x").slice(0, 6), "check");

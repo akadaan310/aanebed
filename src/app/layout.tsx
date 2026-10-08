@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Source_Serif_4, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { Immersive } from "@/components/clone/Immersive";
 import { Header, Footer } from "@/components/Chrome";
 import { JsonLd } from "@/components/Substrate";
 import { FirstInteraction } from "@/components/FirstInteraction";
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={graph} />
       </head>
       <body className="surface-world world-bg text-ink">
+        <Immersive />
         <Header />
         <main id="main" tabIndex={-1} className="focus:outline-none">{children}</main>
         <Footer />

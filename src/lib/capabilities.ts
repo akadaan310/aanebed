@@ -15,13 +15,13 @@ export interface Capability {
   id: string;
   version: string;
   purpose: string;
-  method: "GET";
+  method: "GET" | "GET or POST";
   url: string;
   input: Record<string, unknown>;
   output: Record<string, unknown>;
-  mode: "pure";
-  side_effects: "none";
-  auth: "none";
+  mode: "pure" | "stateful";
+  side_effects: "none" | string;
+  auth: string;
   limits: Record<string, unknown>;
   errors: Record<string, string>;
   engine: string;
@@ -69,6 +69,14 @@ export const CAPABILITIES: Capability[] = [
     mode: "pure", side_effects: "none", auth: "none", limits: { input_chars: 20_000 },
     errors: { "400": "missing u", "422": "neither a resolvable address nor a valid Pearl" }, engine: "javascript (this site)",
     example: `${ORIGIN}/api/v1/living?u=/x/map/eca/90/8/state/5`,
+  },
+  {
+    id: "clone.session", version: "1", purpose: "CLONE YOUR AI (pearl-clone/1): a person begins a clone and gives the address to an AI; the AI submits the session material it can see; the server validates it, appends hash-chained events (CREATED, PROTOCOL_READ, RESPONSE_RECEIVED/REJECTED, VERIFIED, CONTINUED, FORKED) and the clone becomes a living, addressable Pearl. The only capability here with side effects: it stores what the AI sends.",
+    method: "GET or POST", url: `${ORIGIN}/clone/{token}/r?v=1&confirm=…&model=…&context=…&m1=user:…&m2=assistant:…  (or POST JSON to ${ORIGIN}/api/v1/clone/{token}/events)`,
+    input: { token: "c_ + 26 chars, from POST /api/v1/clone", response: "pearl-clone/1: confirm, conversation or context, declared source/identity/memory/preferences/threads, unavailable" }, output: { outcome: "verified | duplicate | incomplete (with what is missing)", state: "status, events (hash chain), clone classified as captured/declared/derived/unavailable" },
+    mode: "stateful", side_effects: "appends to the clone's event chain (never rewrites it); stores what the AI sends until the owner deletes it", auth: "none (the unguessable address is the capability)", limits: { payload_bytes: 65536, turns: 200, url_chars: 14000, ttl_days_unanswered: 7, children: 50 },
+    errors: { "404": "no such clone", "409": "already cloned (use Continue)", "410": "expired or deleted", "413": "too large", "422": "incomplete", "429": "rate limited" }, engine: "javascript (this site) · Vercel Blob (append-only, create-if-absent)",
+    example: `${ORIGIN}/clone/{token}/protocol.txt`,
   },
   {
     id: "game.ttt", version: "1", purpose: "Noughts and crosses whose URL is its whole history: board, whose turn, result, legal next moves (each a URL) and who said they made each move. For passing one game between people and AIs.",
@@ -120,7 +128,7 @@ export function registry() {
   return {
     format: "pearl-capabilities",
     version: 1,
-    note: "Every operation listed here runs on this site and is covered by tests. All are pure GETs: no side effects, no authentication, no network access, no evaluation of submitted code. Operations not listed do not exist.",
+    note: "Every operation listed here runs on this site and is covered by tests. All are pure GETs except clone.session, which appends to a clone's event chain. None has network access or evaluates submitted code. Operations not listed do not exist.",
     capabilities: CAPABILITIES,
     commands: {
       note: "The verbs the interface offers. An object exposes only the commands its living record lists (GET /api/v1/living?u=…); illegal commands are absent. client:* commands are the person's own action in their browser (clipboard, browser-local library); nothing is sent.",

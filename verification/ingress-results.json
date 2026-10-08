@@ -17,7 +17,7 @@
       "n": 1,
       "question": "What can it discover?",
       "pass": true,
-      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 58 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 52 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
+      "answer": "From the root alone (HTTP Link header, <link> elements, <a> elements): 56 same-origin URLs, including /research.json, /.well-known/ai, /llms.txt. robots.txt names a sitemap with 52 URLs. An embedded JSON layer (#substrate-layer) is present on the root page: yes.",
       "evidence": [
         "/",
         "/robots.txt",
@@ -28,7 +28,7 @@
       "n": 2,
       "question": "Can it find the machine-readable interface?",
       "pass": true,
-      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 25 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /g/ttt/{cell}~{name}/…, /api/v1/game/ttt/{moves}, /api/substrate/status, /live/{address}, /api/v1/living?u={Pearl link | address}, /compare, /play, /capabilities.json, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
+      "answer": "Yes, without guessing: the root announces /.well-known/ai and /research.json in both the HTTP Link header and <link> elements. The AI manifest lists 27 entry points: /compose, /e, /e.json, /p/{id}.{payload}, /clone/{token}, /api/v1/clone, /g/ttt/{cell}~{name}/…, /api/v1/game/ttt/{moves}, /api/substrate/status, /live/{address}, /api/v1/living?u={Pearl link | address}, /compare, /play, /capabilities.json, /prompts, /schemas/pearl.schema.json, /schemas/pearl-export.schema.json, /llms.txt, /ai.txt, /.well-known/ai, /research.json, /schemas/research-manifest.schema.json, /verify/ingress.json, /x, /sitemap.xml, /robots.txt, /manifest.json.",
       "evidence": [
         "/.well-known/ai",
         "/research.json"
@@ -327,6 +327,7 @@
       "/capabilities",
       "/capabilities.json",
       "/clock",
+      "/clones",
       "/compare",
       "/compose",
       "/continue",
@@ -344,16 +345,12 @@
       "/experiments",
       "/explore",
       "/g/ttt",
-      "/g/ttt/4~you/0~ai-a/8~you/2~ai-b",
       "/garden",
       "/how",
       "/live",
-      "/live/map/eca/90/8/state/5",
       "/llms.txt",
       "/loom",
       "/manifest.json",
-      "/p/p_1e55acfe5433k2b7.VZFNaxwxDIb_jXNQtnS2n3HxXraEFkopbKFn2dbGYj2yseVO5t-XmfSSm4TeR4JHulZyoYiyDNbVKGsm92u0lu9B-CkpFCHjV3fOOCKZTr1zERf29tBxPkzmWpq74Gz85JDtZYisxh9dGjOK3QfvnHC42TNWRRY4l3lmdUtChT0OAXPucMEZlkSyFz1x7YAKx23DeycDJZDdM42VOtwppTsoAnW0Wjq9sPQcWCl-AaG_1CCU1igosBr_wWV6tpoIYsOFmuNI2GEhqNhuFOFaGmRUasZ_dDPN9g-B4EwRNiigHmoqWgBrhd3Sdn0bXbl1fTFm_CcXKfDmyf7AISFtqcfGEVfjPztNjTDaRxbuaaeL-IItsjxBKHU1_sFh0I3_2vCqsBGvUokwZhbqxk9vXbLfKOdyD6_9Gj9NrtrfiTtwh932dk3oWeH_I6GnMnKEm5QF0JehMPob46eju-ay2O-R8PQTZzqdS11Pl8T1Hw",
-      "/p/p_d33718hcychwfbgy.PZDbjqpIAEW_5nRmUm0fQW524iSIgKioqKDwYgoooRQooIprzsdPnE7med9WNhtKtEB9iWqMigh9MMwytFAB68gkx0XDEIhRhGNUf4TDQstgEyPwF0sRUC3AUshA2OCMAZZiCkqYoL8_KKIUk2LRSpP_o9wi_T6npMliMJAGxARgBhiJ4fBrZnyE_KL8PhQIpKRAlIGqQZRhUnwBHUYpgAXtUA0wBZhRQLoCHBGss09AyX9tESzAC6ESvLFIgX64HpjRT0BqkOAW_cy93TVQra-PcLaIUoIj9H3FWfZWc8jYe6QAEAwI1r9mxh8f0c-31uEs--d3-bu8i1BMkl5RyqksRanEfd2C5fKs7FXd8u5P1xBZpXorQbfc5M7Xh6W4L7Jy-UTyMJH1PVMfu-lrjoJi9bCPckDDvLfCot929u7MLgrfTZZdMNWvVcfbWdSERYDElyQw3xRaVzWVS7JpXdOUnWQIjJl31UvzdRwVeSx5s17fdvk6qJ73JS_U8zl-TZjaFsFeevKb3Tq62uaJJLlWiGtiDQMlmTm1lM4zqbPRfCSH_EnufEUOhkbyfVd63eFS8590JL7g9_7e6cyozXbXregnXG5fz9sTt-XbdZ_t4XZXytphuZHZuVn5_XS0I3fb51o947ZO1PMX7jCbaeddak9CceIIe0Nb1_v-FHJiVZs0a_b5nJ_4fD4eKuFqjk50k-H9z7EmIQyzARSE_fxfczRlQjxD0xjOolb6ugVaD-le1fXL_fQS_F5UdTdN3dQ4m4YmaNUDvej13kteGNXIsu5HY-mVD35E3cEepWN4fMkUp2OvhJ4-b9rB6vV0rBrCJL15cJbd3vRk-sB3RzsKCb5sSLyuT89stFFOM8jNjpJyfNwoM-OyK-xwflcecll3UyLL3eR12JlKlMh4dFa2bkseNaT88tRXruPtoEWyURtaS0y1dbm7rNyozKjnh8ia0t4cLxvsuVFjDAbl5U098GfYtq3QSsUj5ke3gcF5U4oNT2bOVbvlULCCLOZYG25EdDiZBserWYOHyNHzHiYjVx2rSVivptUSt4ra_Qs",
       "/play",
       "/press",
       "/prompts",
@@ -375,7 +372,8 @@
       "/spaces",
       "/verify",
       "/verify/ingress.json",
-      "/workspace"
+      "/workspace",
+      "/world"
     ],
     "via_conventions": [
       "/robots.txt",

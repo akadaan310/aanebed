@@ -82,11 +82,11 @@
 /* V6: the world. A night-sky surface of glass where living Pearls float. */
 .surface-world {
   color-scheme: dark;
-  --color-ground: #0b0d18;
-  --color-panel: #151a2c;
-  --color-raised: #1c2238;
-  --color-rule: #2a3150;
-  --color-rule-strong: #414a72;
+  --color-ground: #08090c;
+  --color-panel: #14161b;
+  --color-raised: #1b1e24;
+  --color-rule: #25272d;
+  --color-rule-strong: #3d4049;
   --color-ink: #f3f1ea;
   --color-ink-2: #cfcde0;
   --color-ink-3: #a7a5c2;
@@ -96,8 +96,8 @@
   --color-gold-deep: #4a3b17;
   --color-refuse: #ffa392;
   --pearl-hi: #ffffff;
-  --pearl-mid: #d9d3f0;
-  --pearl-lo: #5a5490;
+  --pearl-mid: #e4ddd0;
+  --pearl-lo: #6e675b;
 }
 
 /* Simple | Explore: one data model, two presentations. Without JavaScript, Simple. */
@@ -258,17 +258,17 @@ html[data-mode="explore"] .simple-only { display: none !important; }
 /* V6 world components */
 @layer components {
   .world-bg { background:
-      radial-gradient(60rem 40rem at 15% -10%, rgb(110 90 220 / 0.32), transparent 60%),
-      radial-gradient(50rem 36rem at 95% 10%, rgb(40 170 150 / 0.22), transparent 60%),
-      radial-gradient(70rem 40rem at 50% 120%, rgb(230 160 80 / 0.16), transparent 60%),
+      radial-gradient(60rem 40rem at 15% -10%, rgb(150 150 165 / 0.14), transparent 60%),
+      radial-gradient(50rem 36rem at 95% 10%, rgb(120 130 140 / 0.10), transparent 60%),
+      radial-gradient(70rem 40rem at 50% 120%, rgb(200 170 120 / 0.10), transparent 60%),
       var(--color-ground); }
   .glass { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.13); border-radius: 1.6rem; backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: 0 30px 80px -40px rgb(0 0 0 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.08); }
   .glass-strong { background: rgb(21 26 44 / 0.86); border: 1px solid rgb(255 255 255 / 0.14); border-radius: 1.6rem; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
   .pearl-tile { position: relative; display: flex; flex-direction: column; overflow: hidden; text-decoration: none; color: var(--color-ink); transition: transform 260ms var(--ease-transition), box-shadow 260ms var(--ease-transition), border-color 260ms; }
-  .pearl-tile:hover, .pearl-tile:focus-visible { transform: translateY(-4px) scale(1.01); border-color: rgb(255 255 255 / 0.3); box-shadow: 0 40px 90px -40px rgb(120 100 255 / 0.55); }
-  .orb { border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--pearl-hi), var(--pearl-mid) 45%, var(--pearl-lo) 100%); box-shadow: 0 0 60px -10px rgb(180 170 255 / 0.55), inset -10px -14px 30px rgb(40 30 90 / 0.5); }
+  .pearl-tile:hover, .pearl-tile:focus-visible { transform: translateY(-4px) scale(1.01); border-color: rgb(255 255 255 / 0.3); box-shadow: 0 40px 90px -40px rgb(240 232 214 / 0.3); }
+  .orb { border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--pearl-hi), var(--pearl-mid) 45%, var(--pearl-lo) 100%); box-shadow: 0 0 60px -10px rgb(240 232 214 / 0.4), inset -10px -14px 30px rgb(40 36 30 / 0.5); }
   .orb-float { animation: float 7s ease-in-out infinite; }
-  .btn-glow { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 3rem; padding: 0.7rem 1.35rem; border-radius: 999px; background: var(--color-ink); color: var(--color-ground); font-weight: 600; font-size: 0.98rem; text-decoration: none; cursor: pointer; box-shadow: 0 10px 40px -10px rgb(200 190 255 / 0.6); transition: transform 160ms var(--ease-transition); }
+  .btn-glow { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 3rem; padding: 0.7rem 1.35rem; border-radius: 999px; background: var(--color-ink); color: var(--color-ground); font-weight: 600; font-size: 0.98rem; text-decoration: none; cursor: pointer; box-shadow: 0 10px 40px -10px rgb(240 232 214 / 0.45); transition: transform 160ms var(--ease-transition); }
   .btn-glow:hover { transform: translateY(-1px); }
   .btn-glass { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.55rem 1.1rem; border-radius: 999px; background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.18); color: var(--color-ink); font-size: 0.92rem; text-decoration: none; cursor: pointer; transition: background 160ms, border-color 160ms; }
   .btn-glass:hover { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.32); }
@@ -280,3 +280,16 @@ html[data-mode="explore"] .simple-only { display: none !important; }
   .toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 60; animation: reveal 220ms var(--ease-transition) both; }
 }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* Clone: immersive pages hide the site chrome (navigation stays one tap away in the corner). */
+html[data-immersive] .site-nav, html[data-immersive] .site-cta { display: none !important; }
+@layer components {
+  .clone-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 4.25rem; padding: 1rem 2.6rem; border-radius: 999px; border: 1px solid rgb(245 238 222 / 0.45); background: rgb(245 238 222 / 0.06); color: #f5eede; font-family: var(--font-sans); font-size: clamp(1rem, 3.6vw, 1.15rem); font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; cursor: pointer; transition: background 300ms, border-color 300ms, transform 200ms; backdrop-filter: blur(6px); }
+  .clone-cta:hover, .clone-cta:focus-visible { background: rgb(245 238 222 / 0.14); border-color: #f5eede; }
+  .clone-cta:active { transform: scale(0.98); }
+  .clone-cta[aria-busy="true"] { opacity: 0.7; }
+  .step { display: flex; align-items: baseline; gap: 0.8rem; font-size: 0.82rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-ink-3); }
+  .step[aria-current="step"] { color: #f5eede; }
+  .step b { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; }
+  .addr { font-family: var(--font-mono); font-size: clamp(0.8rem, 3.4vw, 1rem); color: #f5eede; word-break: break-all; }
+}

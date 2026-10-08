@@ -19,7 +19,10 @@ const isJson = (want = 200): Check => (r) => (r.status !== want ? `status ${r.st
 const isHtml = (want = 200, must?: string): Check => (r) => (r.status !== want ? `status ${r.status}` : !r.type.includes("html") ? `type ${r.type}` : must && !r.body.includes(must) ? `missing “${must}”` : null);
 
 const CASES: { name: string; path: string; check: Check }[] = [
-  { name: "home: come here", path: "/", check: isHtml(200, "Come here.") },
+  { name: "home: clone your AI", path: "/", check: isHtml(200, "Clone your AI") },
+  { name: "the world (V6 home)", path: "/world", check: isHtml(200, "Come here.") },
+  { name: "clone: unknown address is a kind 404", path: "/api/v1/clone/c_00000000000000000000000000", check: isJson(404) },
+  { name: "clone: unknown page explains itself", path: "/clone/c_00000000000000000000000000", check: isHtml(200, "No Pearl lives at this address.") },
   { name: "how it works (the previous home)", path: "/how", check: isHtml(200, "Your AI can make a Pearl") },
   { name: "game page", path: "/g/ttt/4~you/0~ai-a", check: isHtml(200, "How it got here") },
   { name: "game JSON: board and legal moves", path: "/api/v1/game/ttt/4~you/0~claude", check: (r) => isJson()(r) ?? (r.json.board !== "O---X----" || r.json.legal_moves?.length !== 7 ? `board ${r.json.board}` : null) },

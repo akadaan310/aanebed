@@ -18,9 +18,11 @@
     "test:ingress": "tsx scripts/ingress.ts",
     "test:links": "tsx scripts/check-links.ts",
     "verify": "npm run typecheck && npm run test:unit && npm run build",
-    "test:smoke": "tsx scripts/smoke.ts"
+    "test:smoke": "tsx scripts/smoke.ts",
+    "test:clone": "tsx scripts/clone-e2e.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.1",
     "next": "16.3.8",
     "react": "19.2.0",
     "react-dom": "19.2.0"

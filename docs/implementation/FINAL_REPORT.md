@@ -1,4 +1,41 @@
-# Final report — Pearls V6, the human surface
+# Final report — CLONE YOUR AI
+
+Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 7.0.0 · How it works: `docs/clone/CLONE.md`
+
+## Built
+
+- **Landing (`/`):** one action, CLONE YOUR AI, on a night field with a breathing pearl. It creates a real clone session on the server.
+- **Clone page (`/clone/{token}`):**
+  - waiting: Copy · Give it to your AI · Bring it back · Watch it live;
+  - live arrival over SSE (polling as the fallback): something arrived → verifying → alive;
+  - the living Pearl: Continue · Copy Pearl · Clone again · Delete for the owner;
+  - an inspectable record: captured / declared / derived / unavailable, the hash chain, and an address per event;
+  - the protocol in static HTML for the AI.
+- **Protocol `pearl-clone/1`:** GET return, POST JSON, or relayed by the person. Validation names exactly what is missing; replays are idempotent; one clone per address; continuation and fork children; clone-of-clone.
+- **Backend:** Next.js route handlers plus an append-only, hash-chained event store on a provisioned private **Vercel Blob** store, using create-if-absent writes for sequence integrity and the one-clone lock. It has expiry, deletion with tombstones, rate limits, CSRF and size limits, and structured logs.
+- **Feedback:** canvas field driven by real state (events → smoke, turns → rings, branches → orbits, verification → stillness), Web Audio cues, sparse speech, and vibration patterns, each tied to real events. Reduced motion and no audio or haptics keep the same meaning.
+- **Machine surface:** the `clone.session` capability (marked stateful), `/llms.txt`, entry points, and `/clone/{token}/protocol.txt` and `clone.txt`.
+- **Kept:** the V6 world at `/world`, the V2 living layer, the research surface and every machine interface.
+
+## Verified
+
+| Suite | Result |
+|---|---|
+| Unit | see below; clone tests cover both backends, including a fake Blob API with real overwrite semantics and a lagging listing, plus races, replays, expiry, deletion, unauthorized access and branching |
+| Browser (desktop + Pixel 7) | full suite green, including the clone journeys: one action; waiting → AI responds from outside → two browsers update live; refresh while waiting and after; a new context reconstructs it; bring-back relay; incomplete answer names what is missing; continue / clone again / parent unchanged; owner-only delete; polling without EventSource under reduced motion; axe on the waiting and living pages |
+| Protocol end to end (`npm run test:clone`) | LIVE_CLONE |
+| Smoke / ingress | LIVE_SMOKE |
+
+## Honest limits
+
+- **No real AI was given a clone address in this session.** The harness answers as an AI would, using both protocol paths. Whether a given AI's browsing tool can open the address or follow the GET return depends on that tool; path C (paste the reply back) works when it can't.
+- **The OPENED state is a heuristic** (a read without browser navigation headers) and is labelled as one.
+- **Anyone with the address can read the clone**, by design: a capability URL, stated in the UI. Deletion is owner-only.
+- **Rate limits are per server instance** (best-effort).
+
+---
+
+# Previous phase — Pearls V6, the human surface
 
 Date: 2026-10-08 · Branch `ccr-d6dc9f9c-fvwlfi` · Version 6.0.0 · Plan: `docs/v6/IMPLEMENTATION_MAP.md` · Backend gaps: `docs/v6/BACKEND_CONTRACT_GAPS.md`
 

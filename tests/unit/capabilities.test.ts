@@ -22,7 +22,10 @@ const fixture = readFileSync("tests/fixtures/claude-2026-10-08.url", "utf8").tri
 test("registry lists only pure GET operations, and the only active engine is javascript (no fake Julia)", () => {
   const r = registry();
   assert.equal(r.capabilities.length, CAPABILITIES.length);
-  for (const c of r.capabilities) { assert.equal(c.method, "GET"); assert.equal(c.side_effects, "none"); assert.equal(c.auth, "none"); }
+  for (const c of r.capabilities.filter((x) => x.id !== "clone.session")) { assert.equal(c.method, "GET"); assert.equal(c.side_effects, "none"); assert.equal(c.auth, "none"); }
+  const clone = r.capabilities.find((x) => x.id === "clone.session")!;
+  assert.equal(clone.mode, "stateful", "the one capability that stores data says so");
+  assert.match(clone.side_effects, /appends/);
   assert.deepEqual(ENGINES.filter((e) => e.status === "active").map((e) => e.id), ["javascript"]);
   assert.equal(ENGINES.find((e) => e.id === "julia")?.status, "not available");
   assert.ok(MACHINE_ENTRYPOINTS.some((e) => e.path === "/capabilities.json"));
